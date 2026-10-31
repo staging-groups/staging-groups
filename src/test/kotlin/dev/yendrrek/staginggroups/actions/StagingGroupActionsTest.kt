@@ -64,7 +64,7 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         assertTrue(updated(menu, selecting(foo)).presentation.isVisible)
     }
 
-    fun `test menu lists every group by its literal name, then New and Remove`() {
+    fun `test menu lists every group by its literal name, then New, Remove and Manage`() {
         val menu = action("StagingGroups.Assign") as StagingGroupMenu
         val choices = action("StagingGroups.Assign.Choices") as StagingGroupChoices
         val event = selecting(foo)
@@ -73,7 +73,7 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
 
         assertEquals(listOf("Feature A", "auth_flow"), names)
         assertEquals(
-            listOf("StagingGroups.Assign.Choices", null, "StagingGroups.NewGroup", "StagingGroups.Remove"),
+            listOf("StagingGroups.Assign.Choices", null, "StagingGroups.NewGroup", "StagingGroups.Remove", null, "StagingGroups.Manage"),
             menu.getChildren(event).map { ActionManager.getInstance().getId(it) },
         )
     }

@@ -6,11 +6,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.openapi.ui.Messages
-import com.intellij.ui.FileColorManager
 import dev.yendrrek.staginggroups.StagingGroupsBundle
 import dev.yendrrek.staginggroups.domain.GroupsCommands
 import dev.yendrrek.staginggroups.domain.GroupsState
 import dev.yendrrek.staginggroups.state.StagingGroupsStore
+import dev.yendrrek.staginggroups.ui.StagingGroupPalette
 import java.util.UUID
 
 /** Asks for a name, then creates a staging group holding the selected files, if any. */
@@ -29,13 +29,13 @@ class NewStagingGroupAction : AnAction(), DumbAware {
         val store = StagingGroupsStore.getInstance(project)
         val name = Messages.showInputDialog(
             project,
-            StagingGroupsBundle.message("dialog.new.group.name"),
+            StagingGroupsBundle.message("dialog.group.name"),
             StagingGroupsBundle.message("dialog.new.group.title"),
             null,
             "",
             NameValidator { store.state },
         ) ?: return
-        val palette = FileColorManager.getInstance(project).colorIDs.toList()
+        val palette = StagingGroupPalette.colourIds(project)
         store.update { state ->
             // Another change may have taken the name while the dialog was open.
             if (GroupsCommands.nameProblem(state, name) != null) return@update state

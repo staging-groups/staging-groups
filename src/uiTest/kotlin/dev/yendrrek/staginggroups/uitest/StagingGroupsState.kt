@@ -16,13 +16,14 @@ private const val PLUGIN_PRELUDE = """
 
 /**
  * Replaces the project's staging groups with [groups], in that order: each group's name maps to the
- * paths of its files, relative to the project directory. Group IDs are the names.
+ * paths of its files, relative to the project directory. Group IDs are the names; a group's colour
+ * is its File Colors ID in [colours], or none.
  */
-fun RemoteRobot.setStagingGroups(groups: Map<String, List<String>>) {
+fun RemoteRobot.setStagingGroups(groups: Map<String, List<String>>, colours: Map<String, String> = emptyMap()) {
     val commands = groups.entries.joinToString("\n") { (name, paths) ->
         val jsPaths = paths.joinToString(", ") { "basePath + '/$it'" }
         """
-        state = commands.create(state, '$name', '', '$name')
+        state = commands.create(state, '$name', '${colours[name].orEmpty()}', '$name')
         state = commands.assign(state, java.util.List.of($jsPaths), '$name')
         """
     }
@@ -73,3 +74,41 @@ fun RemoteRobot.stagingGroupAssignments(): Map<String, String> =
         """,
         false,
     ).lines().filter { it.isNotEmpty() }.associate { it.substringBefore('=') to it.substringAfter('=') }
+
+/** Every staging group in display order, as `name:colourId`. */
+fun RemoteRobot.stagingGroupList(): List<String> =
+    callJs<String>(
+        """
+        $PLUGIN_PRELUDE
+        var groups = companion('dev.yendrrek.staginggroups.state.StagingGroupsStore').getInstance(project).snapshot().getGroups()
+        var lines = []
+        for (var i = 0; i < groups.size(); i++) lines.push(groups.get(i).name + ':' + groups.get(i).colourId)
+        '' + lines.join('\n')
+        """,
+        false,
+    ).lines().filter { it.isNotEmpty() }
+
+/** Saves the Staging Groups settings with only **Use colours for staging groups** changed. */
+fun RemoteRobot.setUseColours(useColours: Boolean) {
+    runJs(
+        """
+        $PLUGIN_PRELUDE
+        companion('dev.yendrrek.staginggroups.settings.StagingGroupsSettings').getInstance(project).update(
+            new Packages.kotlin.jvm.functions.Function1({
+                invoke: function (state) { return state.copy($useColours, state.colourTabs, state.colourTrees, state.autoCleanup) }
+            })
+        )
+        """,
+        true,
+    )
+}
+
+/** Whether **Use colours for staging groups** is saved as on. */
+fun RemoteRobot.useColours(): Boolean =
+    callJs(
+        """
+        $PLUGIN_PRELUDE
+        companion('dev.yendrrek.staginggroups.settings.StagingGroupsSettings').getInstance(project).snapshot().useColours
+        """,
+        false,
+    )

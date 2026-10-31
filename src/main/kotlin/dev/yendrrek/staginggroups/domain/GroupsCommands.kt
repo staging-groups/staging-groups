@@ -71,6 +71,23 @@ object GroupsCommands {
         return state.copy(groups = numbered(others))
     }
 
+    /**
+     * Makes [groups] the only groups, in that order, as an edit of all groups at once: groups kept
+     * by ID keep their files, and the files of every other group become ungrouped. Each group's
+     * [StagingGroup.order] is ignored and renumbered; names are trimmed. Names may change hands
+     * between groups, such as two groups swapping names, as long as the result has no duplicate.
+     */
+    fun replaceGroups(state: GroupsState, groups: List<StagingGroup>): GroupsState {
+        val replaced = ArrayList<StagingGroup>(groups.size)
+        for (group in groups) {
+            requireValidName(GroupsState(groups = replaced), group.name, exceptId = null)
+            require(replaced.none { it.id == group.id }) { "Staging group ID ${group.id} is used twice" }
+            replaced += group.copy(name = group.name.trim(), order = replaced.size)
+        }
+        val ids = replaced.mapTo(HashSet()) { it.id }
+        return GroupsState(groups = replaced, assignments = state.assignments.filterValues { it in ids })
+    }
+
     /** Assigns [paths] to the group, moving any already in another group. */
     fun assign(state: GroupsState, paths: Collection<String>, id: String): GroupsState {
         requireGroup(state, id)

@@ -93,6 +93,41 @@ class GroupsCommandsTest {
     }
 
     @Test
+    fun `replaceGroups renames, recolours, reorders, adds and deletes in one edit`() {
+        val assigned = GroupsCommands.assign(twoGroups, listOf("/p/Foo.kt"), "a")
+            .let { GroupsCommands.assign(it, listOf("/p/Util.kt"), "r") }
+
+        val state = GroupsCommands.replaceGroups(
+            assigned,
+            listOf(StagingGroup("n", " Docs ", "Rose", 7), StagingGroup("a", "Feature B", "Violet", 0)),
+        )
+
+        assertEquals(listOf(StagingGroup("n", "Docs", "Rose", 0), StagingGroup("a", "Feature B", "Violet", 1)), state.groups)
+        assertEquals(mapOf("/p/Foo.kt" to "a"), state.assignments)
+    }
+
+    @Test
+    fun `replaceGroups lets two groups swap names`() {
+        val state = GroupsCommands.replaceGroups(
+            twoGroups,
+            listOf(StagingGroup("a", "Refactor", "Blue", 0), StagingGroup("r", "Feature A", "Green", 1)),
+        )
+
+        assertEquals(listOf("Refactor", "Feature A"), state.groups.map { it.name })
+    }
+
+    @Test
+    fun `replaceGroups rejects blank and duplicate names and a repeated ID`() {
+        assertThrows<IllegalArgumentException> { GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", " ", "", 0))) }
+        assertThrows<IllegalArgumentException> {
+            GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", "Docs", "", 0), StagingGroup("r", "docs ", "", 1)))
+        }
+        assertThrows<IllegalArgumentException> {
+            GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", "One", "", 0), StagingGroup("a", "Two", "", 1)))
+        }
+    }
+
+    @Test
     fun `assign puts files in one group, moving them from any other`() {
         val first = GroupsCommands.assign(twoGroups, listOf("/p/Foo.kt", "/p/Bar.kt"), "a")
         val moved = GroupsCommands.assign(first, listOf("/p/Bar.kt"), "r")
