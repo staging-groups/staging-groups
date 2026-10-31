@@ -1,1 +1,10 @@
+.gradle/
+.intellijPlatform/
+.kotlin/
+build/
+out/
+.idea/
+*.iml
+.DS_Store
 /docs/
+/CLAUDE.local.md

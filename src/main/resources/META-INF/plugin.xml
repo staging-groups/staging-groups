@@ -1,0 +1,22 @@
+<idea-plugin>
+    <!-- Never change after the first Marketplace upload. -->
+    <id>dev.yendrrek.staginggroups</id>
+    <name>Staging Groups</name>
+    <vendor>yendrrek</vendor>
+
+    <description><![CDATA[
+        Named groups for changed files in the Git staging area and the Commit view.
+        <br/><br/>
+        Put changed files into staging groups such as "Feature A" or "Refactor", then choose
+        <b>Group By | Staging Groups</b> to see each group as a node under <i>Staged</i> and
+        <i>Unstaged</i>. Stage, unstage or roll back a whole group in one action.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Errors users report from this plugin show on its Marketplace page. -->
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
+    </extensions>
+</idea-plugin>
