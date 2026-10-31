@@ -58,7 +58,8 @@ private members, `-v` for annotations, and `-c` for bytecode.
   `acceptedInternalApiUsages` in `build.gradle.kts` stays empty. A class in an `impl` package is
   allowed when it carries no such annotation; a Kotlin-`internal` member never is.
 - Never omit a defaulted argument when calling a `com.intellij` Kotlin function or constructor. The
-  synthetic `$default` call throws `NoSuchMethodError` on newer IDEs.
+  synthetic `$default` call throws `NoSuchMethodError` on newer IDEs. `PlatformDefaultArgumentCallsTest`
+  enforces it.
 - The grouping policy and the colour provider run off the EDT and very often: read immutable
   snapshots only, with no I/O and no locks.
 - Keep Git-specific code in the optional `staginggroups-git.xml` module, so the plugin loads with
@@ -80,5 +81,9 @@ PrismTabs (`~/dev/prismtabs`, ID `io.prismtabs`) also colours editor tabs throug
 ## Conventions
 
 - British English in code and UI text.
-- Never change the plugin `<id>`, or rename a persisted state class or property: users would lose
-  their saved groups.
+- Never change the plugin `<id>`, or rename a persisted state class, property or XML name: users
+  would lose their saved groups. `PersistenceTest` reads the files in `src/test/resources/saved-state`
+  to catch it.
+- Persisted state classes are immutable data classes with `@JvmField val` fields. Give every field
+  that is not a collection or a map an xmlb annotation (`@field:Attribute`, `@field:OptionTag`):
+  the platform's serialiser silently skips final fields without one.

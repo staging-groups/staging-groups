@@ -1,0 +1,11 @@
+<component name="StagingGroups">
+  <groups>
+    <group id="a" name="Feature A" colourId="Blue" order="0" />
+    <group id="r" name="auth_flow &amp; &lt;more&gt;" colourId="" order="1" />
+  </groups>
+  <assignments>
+    <file path="/home/user/project/src/Foo.kt" group="a" />
+    <file path="/home/user/project/My Dir/Zażółć.kt" group="r" />
+    <file path="C:/work/project/Bar.kt" group="a" />
+  </assignments>
+</component>

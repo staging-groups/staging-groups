@@ -153,6 +153,7 @@ tasks {
         // The platform's test class loader rules out the CDS archive anyway; switching it off
         // stops the JVM warning about it on every run.
         jvmArgs("-Xshare:off")
+        systemProperty("java.util.logging.config.file", layout.projectDirectory.file("src/test/logging.properties").asFile.absolutePath)
     }
 
     // One release per line, matching what verifyPlugin checks.
