@@ -20,6 +20,35 @@ fun RemoteRobot.activateCommitToolWindow() {
     )
 }
 
+/**
+ * Switches the Git staging area on or off, as applying **Settings | Version Control | Git** does:
+ * off, the Commit tool window shows changelists instead.
+ */
+fun RemoteRobot.setStagingAreaEnabled(enabled: Boolean) {
+    runJs(
+        """
+        importClass(com.intellij.openapi.application.ApplicationManager)
+        importClass(com.intellij.vcs.commit.CommitModeManager)
+        importClass(com.intellij.ide.plugins.PluginManagerCore)
+        importClass(com.intellij.openapi.extensions.PluginId)
+        var gitLoader = PluginManagerCore.getPlugin(PluginId.getId('Git4Idea')).getPluginClassLoader()
+        var settingsClass = java.lang.Class.forName('git4idea.config.GitVcsApplicationSettings', true, gitLoader)
+        settingsClass.getMethod('getInstance').invoke(null).setStagingAreaEnabled($enabled)
+        // invokeLater runs with the write-intent lock a settings apply has; the listeners need it.
+        ApplicationManager.getApplication().invokeLater(new java.lang.Runnable({
+            run: function () {
+                ApplicationManager.getApplication().getMessageBus().syncPublisher(CommitModeManager.SETTINGS).settingsChanged()
+            }
+        }))
+        """,
+        true,
+    )
+}
+
+/** The Commit view's changelist tree, shown while the staging area is off. */
+fun RemoteRobot.changesTree(): JTreeFixture =
+    find(JTreeFixture::class.java, byXpath("//div[@class='LocalChangesListView' or @class='ChangesListView']"), Duration.ofSeconds(30))
+
 /** The Git staging area's changes tree, once the Commit tool window shows it with its rows built. */
 fun RemoteRobot.stagingTree(): JTreeFixture {
     val tree = find(JTreeFixture::class.java, byXpath("//div[@class='MyChangesTree']"), Duration.ofSeconds(30))

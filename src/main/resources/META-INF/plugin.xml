@@ -12,11 +12,24 @@
         <i>Unstaged</i>. Stage, unstage or roll back a whole group in one action.
     ]]></description>
 
+    <resource-bundle>messages.StagingGroupsBundle</resource-bundle>
+
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.vcs</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Errors users report from this plugin show on its Marketplace page. -->
         <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
+
+        <!-- Weight 50: above repository (30) and directory (10) grouping, so nearest the root. -->
+        <changesGroupingPolicy key="staging-groups" id="staging-groups" weight="50"
+                               implementationClass="dev.yendrrek.staginggroups.vcs.StagingGroupsGroupingPolicy$Factory"/>
     </extensions>
+
+    <actions>
+        <!-- ChangesView.GroupBy is shared by the Commit view and the staging area's options menu. -->
+        <action id="StagingGroups.GroupBy" class="dev.yendrrek.staginggroups.vcs.ToggleStagingGroupsGroupingAction">
+            <add-to-group group-id="ChangesView.GroupBy"/>
+        </action>
+    </actions>
 </idea-plugin>

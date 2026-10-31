@@ -16,6 +16,13 @@ import dev.yendrrek.staginggroups.settings.StagingGroupsSettings
  */
 class PersistenceTest : BasePlatformTestCase() {
 
+    override fun setUp() {
+        super.setUp()
+        // The light project is shared by every test class: start from empty state.
+        StagingGroupsStore.getInstance(project).update { GroupsState() }
+        StagingGroupsSettings.getInstance(project).update { SettingsState() }
+    }
+
     private val sample = GroupsState(
         groups = listOf(
             StagingGroup(id = "a", name = "Feature A", colourId = "Blue", order = 0),
