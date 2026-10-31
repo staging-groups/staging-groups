@@ -52,6 +52,16 @@ javap -cp "$CP" com.intellij.openapi.vcs.changes.ui.SimpleChangesGroupingPolicy
 Read the whole listing; never pipe it through `head` and reason from what is missing. Use `-p` for
 private members, `-v` for annotations, and `-c` for bytecode.
 
+`javap` shows a Kotlin `internal` member as public, and the Plugin Verifier does not report it. Read
+the Kotlin visibility from the classes the plugin compiles against:
+
+```bash
+./gradlew kotlinVisibility --args='git4idea.index.GitStageTracker git4idea.index.GitStageManagerKt'
+```
+
+Top-level functions live in the file's `...Kt` class. A class reported as Java has no Kotlin
+visibility; check its annotations with `javap -v`.
+
 ## Platform API rules
 
 - Never use a class or member annotated `@ApiStatus.Internal`. `verifyPlugin` fails on one, and
@@ -63,7 +73,8 @@ private members, `-v` for annotations, and `-c` for bytecode.
 - The grouping policy and the colour provider run off the EDT and very often: read immutable
   snapshots only, with no I/O and no locks.
 - Keep Git-specific code in the optional `staginggroups-git.xml` module, so the plugin loads with
-  Git disabled.
+  Git disabled. The rest of the plugin reaches the staging area only through the `vcsChangesView`
+  extension point (`VcsChangesView`), which `git/GitStagingAreaView` implements.
 - Register listeners in `plugin.xml`, never as `<component>`, so the plugin unloads without a restart.
 
 ## Coexistence with PrismTabs

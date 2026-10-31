@@ -11,7 +11,7 @@ private const val PLUGIN_PRELUDE = """
     function pluginClass(name) { return java.lang.Class.forName(name, true, pluginLoader) }
     function companion(name) { return pluginClass(name).getField('Companion').get(null) }
     var project = ProjectManager.getInstance().getOpenProjects()[0]
-    var basePath = project.getBasePath()
+    var basePath = '' + project.getBasePath()
 """
 
 /**
@@ -54,3 +54,22 @@ fun RemoteRobot.setStagingTreeGrouping(key: String, enabled: Boolean) {
 fun RemoteRobot.stagingTreeGroupingKeys(): Set<String> =
     stagingTree().callJs<String>("'' + String(component.getGroupingSupport().getGroupingKeys())", true)
         .removeSurrounding("[", "]").split(", ").filter { it.isNotEmpty() }.toSet()
+
+/** Each assigned file, relative to the project directory, mapped to its staging group's name. */
+fun RemoteRobot.stagingGroupAssignments(): Map<String, String> =
+    callJs<String>(
+        """
+        $PLUGIN_PRELUDE
+        var snapshot = companion('dev.yendrrek.staginggroups.state.StagingGroupsStore').getInstance(project).snapshot()
+        var lines = []
+        var entries = snapshot.getState().assignments.entrySet().iterator()
+        while (entries.hasNext()) {
+            var entry = entries.next()
+            var group = snapshot.group(entry.getValue())
+            lines.push(('' + entry.getKey()).substring(basePath.length + 1) + '=' + (group == null ? '?' : group.name))
+        }
+        lines.sort()
+        '' + lines.join('\n')
+        """,
+        false,
+    ).lines().filter { it.isNotEmpty() }.associate { it.substringBefore('=') to it.substringAfter('=') }

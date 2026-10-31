@@ -34,6 +34,8 @@ sourceSets {
         compileClasspath += sourceSets.main.get().output
         runtimeClasspath += sourceSets.main.get().output
     }
+    // Developer tools run with `./gradlew <task>`; never shipped.
+    create("tools")
 }
 
 val uiTestImplementation: Configuration = configurations.getByName("uiTestImplementation") {
@@ -68,6 +70,8 @@ dependencies {
     uiTestImplementation(kotlin("stdlib"))
     uiTestImplementation(libs.remote.robot)
     uiTestImplementation(libs.remote.fixtures)
+
+    "toolsImplementation"(libs.kotlin.metadata.jvm)
 }
 
 kotlin {
@@ -180,6 +184,17 @@ tasks {
         jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
         // Never up to date: the result depends on the live IDE, not on these inputs.
         outputs.upToDateWhen { false }
+    }
+
+    // Bytecode shows Kotlin `internal` as public and the Plugin Verifier misses it; the Kotlin
+    // metadata does not. Reads the classes from the plugin's own compile classpath.
+    register<JavaExec>("kotlinVisibility") {
+        description = "Prints the Kotlin visibility of platform classes and their members: --args='<class>...'"
+        group = "help"
+        classpath = sourceSets["tools"].runtimeClasspath
+        mainClass = "dev.yendrrek.staginggroups.tools.KotlinVisibility"
+        val platformClasspath = sourceSets.main.get().compileClasspath
+        jvmArgumentProviders += CommandLineArgumentProvider { listOf("-Dplatform.classpath=${platformClasspath.asPath}") }
     }
 }
 
@@ -303,6 +318,9 @@ intellijPlatformTesting {
             "-Didea.trust.all.projects=true",
             "-Dide.show.tips.on.startup.default.value=false",
             "-Didea.is.internal=true",
+            // No embedded Chromium: started by the Markdown preview, it writes into the extracted
+            // IDE, a Gradle cache that must not change, and Gradle then re-extracts the whole IDE.
+            "-Dide.browser.jcef.enabled=false",
             // Overrides the -Didea.required.plugins.id=<this plugin> IPGP adds. From 2026.2 that
             // property makes the platform refuse to unload the plugin, so an unload test cannot do
             // what a user's Disable does.

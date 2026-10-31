@@ -100,3 +100,32 @@ fun RemoteRobot.saveReviewScreenshot(name: String) {
     )
     File("build/reports/ui-test/review").apply { mkdirs() }.resolve("$name.png").writeBytes(bytes)
 }
+
+/** Opens [relativePath], relative to the project directory, in the editor and focuses it. */
+fun RemoteRobot.openInEditor(relativePath: String) {
+    runJs(
+        """
+        importClass(com.intellij.openapi.project.ProjectManager)
+        importClass(com.intellij.openapi.fileEditor.FileEditorManager)
+        importClass(com.intellij.openapi.vfs.LocalFileSystem)
+        var project = ProjectManager.getInstance().getOpenProjects()[0]
+        var file = LocalFileSystem.getInstance().findFileByPath(project.getBasePath() + '/$relativePath')
+        FileEditorManager.getInstance(project).openFile(file, true)
+        """,
+        true,
+    )
+}
+
+/** Closes every editor tab. */
+fun RemoteRobot.closeAllEditors() {
+    runJs(
+        """
+        importClass(com.intellij.openapi.project.ProjectManager)
+        importClass(com.intellij.openapi.fileEditor.FileEditorManager)
+        var manager = FileEditorManager.getInstance(ProjectManager.getInstance().getOpenProjects()[0])
+        var files = manager.getOpenFiles()
+        for (var i = 0; i < files.length; i++) manager.closeFile(files[i])
+        """,
+        true,
+    )
+}

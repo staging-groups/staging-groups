@@ -7,15 +7,22 @@
     <description><![CDATA[
         Named groups for changed files in the Git staging area and the Commit view.
         <br/><br/>
-        Put changed files into staging groups such as "Feature A" or "Refactor", then choose
-        <b>Group By | Staging Groups</b> to see each group as a node under <i>Staged</i> and
-        <i>Unstaged</i>. Stage, unstage or roll back a whole group in one action.
+        Put changed files into staging groups such as "Feature A" or "Refactor": right-click them in
+        the Commit view, the staging area, the Project view or an editor tab and choose
+        <b>Staging Group</b>. Then choose <b>Group By | Staging Groups</b> to see each group as a
+        node under <i>Staged</i> and <i>Unstaged</i>, and stage, unstage or roll back a whole group in
+        one action.
     ]]></description>
 
     <resource-bundle>messages.StagingGroupsBundle</resource-bundle>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.vcs</depends>
+    <depends optional="true" config-file="staginggroups-git.xml">Git4Idea</depends>
+
+    <extensionPoints>
+        <extensionPoint name="vcsChangesView" interface="dev.yendrrek.staginggroups.vcs.VcsChangesView" dynamic="true"/>
+    </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Errors users report from this plugin show on its Marketplace page. -->
@@ -26,10 +33,29 @@
                                implementationClass="dev.yendrrek.staginggroups.vcs.StagingGroupsGroupingPolicy$Factory"/>
     </extensions>
 
+    <projectListeners>
+        <listener class="dev.yendrrek.staginggroups.vcs.ChangesViewRefresher"
+                  topic="dev.yendrrek.staginggroups.state.StagingGroupsListener"/>
+    </projectListeners>
+
     <actions>
         <!-- ChangesView.GroupBy is shared by the Commit view and the staging area's options menu. -->
         <action id="StagingGroups.GroupBy" class="dev.yendrrek.staginggroups.vcs.ToggleStagingGroupsGroupingAction">
             <add-to-group group-id="ChangesView.GroupBy"/>
         </action>
+
+        <action id="StagingGroups.NewGroup" class="dev.yendrrek.staginggroups.actions.NewStagingGroupAction"/>
+        <action id="StagingGroups.Remove" class="dev.yendrrek.staginggroups.actions.RemoveFromStagingGroupAction"/>
+
+        <group id="StagingGroups.Assign" popup="true" class="dev.yendrrek.staginggroups.actions.StagingGroupMenu">
+            <group id="StagingGroups.Assign.Choices" class="dev.yendrrek.staginggroups.actions.StagingGroupChoices"/>
+            <separator/>
+            <reference ref="StagingGroups.NewGroup"/>
+            <reference ref="StagingGroups.Remove"/>
+            <add-to-group group-id="ChangesViewPopupMenu" anchor="after" relative-to-action="ChangesView.Move"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="VersionControlsGroup"/>
+            <!-- Never anchor="first" here: that slot is PrismTabs'. -->
+            <add-to-group group-id="EditorTabPopupMenu" anchor="after" relative-to-action="ReopenClosedTab"/>
+        </group>
     </actions>
 </idea-plugin>

@@ -51,3 +51,9 @@ private fun runProcess(vararg command: String): String {
         stderr.delete()
     }
 }
+
+/** Deletes [relativePath] from the fixture repository's working tree and makes the IDE notice. */
+fun RemoteRobot.deleteFromFixture(relativePath: String) {
+    check(fixtureRepo.resolve(relativePath).delete()) { "could not delete $relativePath" }
+    refreshVcs()
+}

@@ -1,10 +1,13 @@
 [versions]
+# Same as the Kotlin Gradle plugin in settings.gradle.kts.
+kotlinMetadata = "2.4.21"
 junit4 = "4.13.2"
 junit5 = "5.14.4"
 # Client (uiTest) and robot-server plugin must be the same version.
 remoteRobot = "0.11.23"
 
 [libraries]
+kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlinMetadata" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }

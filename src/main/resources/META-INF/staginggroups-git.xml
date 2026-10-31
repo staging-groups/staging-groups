@@ -1,0 +1,17 @@
+<!-- Loaded only while the Git plugin is enabled: everything here may use Git classes. -->
+<idea-plugin>
+    <extensions defaultExtensionNs="dev.yendrrek.staginggroups">
+        <vcsChangesView implementation="dev.yendrrek.staginggroups.git.GitStagingAreaView"/>
+    </extensions>
+
+    <projectListeners>
+        <listener class="dev.yendrrek.staginggroups.git.GitStageRefresher"
+                  topic="dev.yendrrek.staginggroups.state.StagingGroupsListener"/>
+    </projectListeners>
+
+    <actions>
+        <reference ref="StagingGroups.Assign">
+            <add-to-group group-id="Git.Stage.Tree.Menu" anchor="after" relative-to-action="Git.Stage.Revert"/>
+        </reference>
+    </actions>
+</idea-plugin>

@@ -96,7 +96,7 @@ fun RemoteRobot.waitForStagingRows(vararg rows: String) {
     val expected = rows.toList()
     var actual = emptyList<String>()
     try {
-        waitFor(Duration.ofSeconds(30), Duration.ofMillis(500), "the staging tree to show $expected") {
+        waitFor(Duration.ofSeconds(30), Duration.ofMillis(100), "the staging tree to show $expected") {
             val tree = stagingTree()
             tree.expandAll()
             actual = tree.collectRows()
@@ -133,8 +133,7 @@ fun RemoteRobot.chooseGroupBy(entry: String) {
 
 /** Moves the mouse over the middle of the [occurrence]th row rendered as [text]. */
 fun JTreeFixture.hoverRow(text: String, occurrence: Int) {
-    val row = collectRows().withIndex().filter { it.value == text }.map { it.index }.getOrNull(occurrence)
-        ?: error("no row '$text' (occurrence $occurrence) in ${collectRows()}")
+    val row = rowIndex(text, occurrence)
     val centre = callJs<String>(
         """
         var bounds = component.getRowBounds($row)

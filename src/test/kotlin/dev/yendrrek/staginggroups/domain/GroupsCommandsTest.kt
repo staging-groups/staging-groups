@@ -47,6 +47,13 @@ class GroupsCommandsTest {
     }
 
     @Test
+    fun `namesake finds the group already called a name, ignoring case, spaces and the group itself`() {
+        assertEquals("r", GroupsCommands.namesake(twoGroups, " REFACTOR ")?.id)
+        assertNull(GroupsCommands.namesake(twoGroups, "refactor", exceptId = "r"))
+        assertNull(GroupsCommands.namesake(twoGroups, "Refactoring"))
+    }
+
+    @Test
     fun `rename changes only the name and allows a case change of its own name`() {
         val state = GroupsCommands.rename(twoGroups, "r", "REFACTOR")
 

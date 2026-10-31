@@ -13,13 +13,19 @@ enum class NameProblem { BLANK, DUPLICATE }
 object GroupsCommands {
 
     /** What is wrong with [name] for a group, ignoring the group [exceptId] itself; `null` if nothing. */
-    fun nameProblem(state: GroupsState, name: String, exceptId: String? = null): NameProblem? {
+    fun nameProblem(state: GroupsState, name: String, exceptId: String? = null): NameProblem? = when {
+        name.isBlank() -> NameProblem.BLANK
+        namesake(state, name, exceptId) != null -> NameProblem.DUPLICATE
+        else -> null
+    }
+
+    /**
+     * The group other than [exceptId] already called [name], comparing without case or surrounding
+     * whitespace; `null` if none.
+     */
+    fun namesake(state: GroupsState, name: String, exceptId: String? = null): StagingGroup? {
         val trimmed = name.trim()
-        return when {
-            trimmed.isEmpty() -> NameProblem.BLANK
-            state.groups.any { it.id != exceptId && it.name.equals(trimmed, ignoreCase = true) } -> NameProblem.DUPLICATE
-            else -> null
-        }
+        return state.groups.firstOrNull { it.id != exceptId && it.name.equals(trimmed, ignoreCase = true) }
     }
 
     /**
@@ -87,9 +93,6 @@ object GroupsCommands {
         val kept = staying.filterNot { (path, _) -> path.isAtOrUnder(newPath) }.associate { it.key to it.value }
         return state.copy(assignments = kept + moved)
     }
-
-    private fun String.isAtOrUnder(path: String): Boolean =
-        this == path || (startsWith(path) && this[path.length] == '/')
 
     private fun requireValidName(state: GroupsState, name: String, exceptId: String?) {
         val problem = nameProblem(state, name, exceptId)
