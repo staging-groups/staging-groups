@@ -104,6 +104,30 @@ class ChangelistGroupingUiTest {
         }
     }
 
+    @Test
+    fun `removing unchanged files after a commit keeps every file still in the changelist`(robot: RemoteRobot) {
+        robot.setStagingGroups(
+            linkedMapOf(
+                "Feature A" to listOf("src/Foo.kt", "src/Qux.kt"),
+                "Refactor" to listOf("src/util/Util.kt", "src/util/Model.kt"),
+            ),
+        )
+        robot.chooseGroupBy("Staging Groups")
+        // Foo.kt and Bar.kt have only staged changes; Baz.kt keeps an unstaged one.
+        robot.commitStagedInFixture()
+        robot.waitForChangesRows(
+            "Changes 4 files", "Feature A 1 file", "Qux.kt src", "Refactor 1 file", "Util.kt src/util",
+            "Baz.kt src", "README.md ui-test-fixture",
+            "Unversioned Files 1 file", "Fresh.kt src",
+        )
+
+        val tree = robot.changesTree()
+        tree.rightClickRow(tree.rowIndex("Qux.kt src"))
+        robot.chooseFromStagingGroupMenu("Remove Unchanged Files from Staging Groups")
+
+        robot.waitForAssignments("src/Qux.kt" to "Feature A", "src/util/Util.kt" to "Refactor")
+    }
+
     private companion object {
         val GROUPED_ROWS = arrayOf(
             "Changes 6 files", "Feature A 2 files", "Foo.kt src", "Qux.kt src", "Refactor 1 file", "Util.kt src/util",

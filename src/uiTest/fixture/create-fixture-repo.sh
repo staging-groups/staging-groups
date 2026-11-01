@@ -3,7 +3,7 @@
 # staged and untracked changes on top.
 #
 #   create-fixture-repo.sh <directory>          create it from scratch
-#   create-fixture-repo.sh <directory> --reset  put its working tree and index back to the
+#   create-fixture-repo.sh <directory> --reset  put its branch, working tree and index back to the
 #                                               starting changes, keeping .git and .idea
 set -euo pipefail
 
@@ -32,7 +32,8 @@ apply_changes() {
 
 if [[ $mode == --reset ]]; then
     cd "$repo"
-    git reset --quiet --hard HEAD
+    # The initial commit, not HEAD: a test may have committed since.
+    git reset --quiet --hard "$(git rev-list --max-parents=0 HEAD)"
     git clean --quiet --force -d
     apply_changes
     exit 0

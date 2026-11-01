@@ -54,6 +54,8 @@
                   topic="dev.yendrrek.staginggroups.state.StagingGroupsListener"/>
         <listener class="dev.yendrrek.staginggroups.ui.FileColourRefresher"
                   topic="dev.yendrrek.staginggroups.state.StagingGroupsListener"/>
+        <listener class="dev.yendrrek.staginggroups.lifecycle.VfsTracker"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     </projectListeners>
 
     <actions>
@@ -64,6 +66,7 @@
 
         <action id="StagingGroups.NewGroup" class="dev.yendrrek.staginggroups.actions.NewStagingGroupAction"/>
         <action id="StagingGroups.Remove" class="dev.yendrrek.staginggroups.actions.RemoveFromStagingGroupAction"/>
+        <action id="StagingGroups.RemoveUnchanged" class="dev.yendrrek.staginggroups.actions.RemoveUnchangedFilesAction"/>
         <action id="StagingGroups.Manage" class="dev.yendrrek.staginggroups.actions.ManageStagingGroupsAction"/>
 
         <group id="StagingGroups.Assign" popup="true" class="dev.yendrrek.staginggroups.actions.StagingGroupMenu">
@@ -72,6 +75,7 @@
             <reference ref="StagingGroups.NewGroup"/>
             <reference ref="StagingGroups.Remove"/>
             <separator/>
+            <reference ref="StagingGroups.RemoveUnchanged"/>
             <reference ref="StagingGroups.Manage"/>
             <add-to-group group-id="ChangesViewPopupMenu" anchor="after" relative-to-action="ChangesView.Move"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="VersionControlsGroup"/>

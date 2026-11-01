@@ -12,8 +12,8 @@ import dev.yendrrek.staginggroups.domain.SelectedPath
  */
 interface VcsChangesView {
 
-    /** Paths of every file the view lists, or `null` while the Commit tool window shows another view. */
-    fun changedPaths(project: Project): Set<String>?
+    /** The files the view lists, or `null` while the Commit tool window shows another view. */
+    fun changedPaths(project: Project): ChangedPaths?
 
     /**
      * The files and folders selected in the view's tree, including those under selected nodes, or
@@ -25,3 +25,9 @@ interface VcsChangesView {
         val EP_NAME: ExtensionPointName<VcsChangesView> = ExtensionPointName("dev.yendrrek.staginggroups.vcsChangesView")
     }
 }
+
+/**
+ * The [paths] of every file a [VcsChangesView] lists. [isLoaded] is `false` until the view has read
+ * every repository once; until then, [paths] can miss changed files.
+ */
+data class ChangedPaths(val paths: Set<String>, val isLoaded: Boolean)

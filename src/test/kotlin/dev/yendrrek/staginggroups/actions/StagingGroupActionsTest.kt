@@ -13,6 +13,7 @@ import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.ui.TestInputDialog
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import dev.yendrrek.staginggroups.domain.GroupsCommands
@@ -20,6 +21,7 @@ import dev.yendrrek.staginggroups.domain.GroupsState
 import dev.yendrrek.staginggroups.domain.SelectedPath
 import dev.yendrrek.staginggroups.state.StagingGroupsListener
 import dev.yendrrek.staginggroups.state.StagingGroupsStore
+import dev.yendrrek.staginggroups.vcs.ChangedPaths
 import dev.yendrrek.staginggroups.vcs.VcsChangesView
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
@@ -64,7 +66,7 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         assertTrue(updated(menu, selecting(foo)).presentation.isVisible)
     }
 
-    fun `test menu lists every group by its literal name, then New, Remove and Manage`() {
+    fun `test menu lists every group by its literal name, then New, Remove, Remove Unchanged and Manage`() {
         val menu = action("StagingGroups.Assign") as StagingGroupMenu
         val choices = action("StagingGroups.Assign.Choices") as StagingGroupChoices
         val event = selecting(foo)
@@ -73,7 +75,7 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
 
         assertEquals(listOf("Feature A", "auth_flow"), names)
         assertEquals(
-            listOf("StagingGroups.Assign.Choices", null, "StagingGroups.NewGroup", "StagingGroups.Remove", null, "StagingGroups.Manage"),
+            listOf("StagingGroups.Assign.Choices", null, "StagingGroups.NewGroup", "StagingGroups.Remove", null, "StagingGroups.RemoveUnchanged", "StagingGroups.Manage"),
             menu.getChildren(event).map { ActionManager.getInstance().getId(it) },
         )
     }
@@ -173,6 +175,34 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         }
     }
 
+    fun `test remove unchanged files keeps only files the changes view lists`() {
+        val unchanged = "/project/src/Committed.kt"
+        store.update { GroupsCommands.assign(GroupsCommands.assign(it, listOf(foo, unchanged), "a"), listOf(bar), "r") }
+        changesView.changed = setOf(foo, bar, "/project/src/Ungrouped.kt")
+        val removeUnchanged = action("StagingGroups.RemoveUnchanged")
+        assertTrue(updated(removeUnchanged, selecting(foo)).presentation.isEnabled)
+
+        removeUnchanged.actionPerformed(selecting(foo))
+        PlatformTestUtil.waitWithEventsDispatching("the unchanged file to leave its group", { unchanged !in store.state.assignments }, 10)
+
+        assertEquals(mapOf(foo to "a", bar to "r"), store.state.assignments)
+        assertEquals(listOf("Feature A", "auth_flow"), store.snapshot().groups.map { it.name })
+        assertFalse(updated(removeUnchanged, selecting(foo)).presentation.isEnabled)
+    }
+
+    fun `test remove unchanged files is disabled and removes nothing until the changes view has loaded`() {
+        store.update { GroupsCommands.assign(it, listOf(foo, bar), "a") }
+        changesView.changed = emptySet()
+        changesView.loaded = false
+        val removeUnchanged = action("StagingGroups.RemoveUnchanged")
+
+        assertFalse(updated(removeUnchanged, selecting(foo)).presentation.isEnabled)
+        removeUnchanged.actionPerformed(selecting(foo))
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+        assertEquals(mapOf(foo to "a", bar to "a"), store.state.assignments)
+    }
+
     private fun action(id: String): AnAction = ActionManager.getInstance().getAction(id)
 
     private fun assignAction(groupId: String) = AssignToStagingGroupAction(groupId)
@@ -189,12 +219,16 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         return fresh
     }
 
-    /** A changes view whose selection and changed files the test sets; `null` stands for "not shown". */
+    /**
+     * A changes view whose selection and changed files the test sets; `null` stands for "not shown".
+     * [loaded] is whether it has read every repository.
+     */
     private class FakeChangesView : VcsChangesView {
         var selection: List<SelectedPath>? = null
         var changed: Set<String>? = null
+        var loaded = true
 
-        override fun changedPaths(project: Project): Set<String>? = changed
+        override fun changedPaths(project: Project): ChangedPaths? = changed?.let { ChangedPaths(it, loaded) }
 
         override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? = selection
     }

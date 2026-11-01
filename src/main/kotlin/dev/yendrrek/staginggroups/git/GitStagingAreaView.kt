@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.vcs.commit.CommitModeManager
 import dev.yendrrek.staginggroups.domain.SelectedPath
+import dev.yendrrek.staginggroups.vcs.ChangedPaths
 import dev.yendrrek.staginggroups.vcs.VcsChangesView
 import git4idea.index.GitStageTracker
 import git4idea.index.ui.GitStageDataKeys
@@ -11,11 +12,14 @@ import git4idea.index.ui.GitStageDataKeys
 /** The Git staging area: staged, unstaged, untracked and conflicted files. */
 class GitStagingAreaView : VcsChangesView {
 
-    override fun changedPaths(project: Project): Set<String>? {
+    override fun changedPaths(project: Project): ChangedPaths? {
         if (!showsStagingArea(project)) return null
-        return GitStageTracker.getInstance(project).state.rootStates.values.flatMapTo(HashSet()) { root ->
+        // One read of the immutable state, so the paths and whether they are complete agree.
+        val roots = GitStageTracker.getInstance(project).state.rootStates.values
+        val paths = roots.flatMapTo(HashSet()) { root ->
             root.statuses.values.filterNot { it.isIgnored() }.map { it.path.path }
         }
+        return ChangedPaths(paths, isLoaded = roots.all { it.initialized })
     }
 
     override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? =

@@ -35,6 +35,10 @@ env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 DISPLAY=:99 ./gradlew runIdeForUiTes
   `@class` matches the concrete class (the staging tree is `MyChangesTree`).
 - `runIdeForUiTestsLatest` runs the same sandbox on the installed IDE set by `uiTestLatestIdePath`
   in `~/.gradle/gradle.properties`. Only one sandbox can run at a time: both listen on port 8082.
+- Renaming, moving or deleting a tracked file in the IDE makes Git ask modal questions: a rename or
+  move asks two (add the new path, delete the old one), a delete one. Answer each with
+  `declineGitConfirmations`. A question left open holds back every later refresh of the Git views,
+  and the following tests fail on stale trees.
 - A list popup, such as a table cell's drop-down, ignores remote-robot's clicks. Choose an item by
   typing its text, which filters the list, then pressing Enter.
 - `PluginUnloadUiTest` disables and re-enables the plugin in the sandbox. When it fails with the class

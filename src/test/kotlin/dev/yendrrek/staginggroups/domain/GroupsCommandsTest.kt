@@ -144,39 +144,68 @@ class GroupsCommandsTest {
     }
 
     @Test
-    fun `movePath follows a file and every file under a directory, but not a sibling with a shared prefix`() {
+    fun `followMove assigns a file and every file under a directory anew, but not a sibling with a shared prefix`() {
         val assigned = GroupsCommands.assign(
-            twoGroups,
-            listOf("/p/src/A.kt", "/p/src/sub/B.kt", "/p/src2/C.kt", "/p/README.md"),
-            "a",
-        )
-
-        val renamedDirectory = GroupsCommands.movePath(assigned, "/p/src", "/p/main")
-        assertEquals(
-            setOf("/p/main/A.kt", "/p/main/sub/B.kt", "/p/src2/C.kt", "/p/README.md"),
-            renamedDirectory.assignments.keys,
-        )
-
-        val renamedFile = GroupsCommands.movePath(assigned, "/p/README.md", "/p/docs/README.md")
-        assertEquals("a", renamedFile.assignments["/p/docs/README.md"])
-        assertNull(renamedFile.assignments["/p/README.md"])
-    }
-
-    @Test
-    fun `movePath replaces whatever was assigned at the destination`() {
-        val assigned = GroupsCommands.assign(
-            GroupsCommands.assign(twoGroups, listOf("/p/A.kt"), "a"),
-            listOf("/p/B.kt", "/p/dir/X.kt"),
+            GroupsCommands.assign(twoGroups, listOf("/p/src/A.kt", "/p/src2/C.kt", "/p/README.md"), "a"),
+            listOf("/p/src/sub/B.kt"),
             "r",
         )
 
-        assertEquals(mapOf("/p/B.kt" to "a", "/p/dir/X.kt" to "r"), GroupsCommands.movePath(assigned, "/p/A.kt", "/p/B.kt").assignments)
-        assertEquals(mapOf("/p/dir" to "a", "/p/B.kt" to "r"), GroupsCommands.movePath(assigned, "/p/A.kt", "/p/dir").assignments)
+        val renamedDirectory = GroupsCommands.followMove(assigned, "/p/src", "/p/main")
+        assertEquals(
+            assigned.assignments + mapOf("/p/main/A.kt" to "a", "/p/main/sub/B.kt" to "r"),
+            renamedDirectory.assignments,
+        )
+
+        val renamedFile = GroupsCommands.followMove(assigned, "/p/README.md", "/p/docs/README.md")
+        assertEquals(assigned.assignments + ("/p/docs/README.md" to "a"), renamedFile.assignments)
     }
 
     @Test
-    fun `movePath of an unassigned path returns the same state`() {
-        assertSame(twoGroups, GroupsCommands.movePath(twoGroups, "/p/A.kt", "/p/B.kt"))
+    fun `followMove keeps the old paths assigned, for the deletions the VCS lists until the move is committed`() {
+        val assigned = GroupsCommands.assign(twoGroups, listOf("/p/A.kt", "/p/dir/X.kt"), "a")
+
+        val moved = GroupsCommands.followMove(assigned, "/p/dir", "/p/other")
+
+        assertEquals("a", moved.assignments["/p/dir/X.kt"])
+        assertEquals("a", moved.assignments["/p/other/X.kt"])
+    }
+
+    @Test
+    fun `followMove replaces what was assigned at a new path and keeps the rest of the destination`() {
+        val assigned = GroupsCommands.assign(
+            GroupsCommands.assign(twoGroups, listOf("/p/src/A.kt"), "a"),
+            listOf("/p/main/A.kt", "/p/main/Deleted.kt"),
+            "r",
+        )
+
+        assertEquals(
+            mapOf("/p/src/A.kt" to "a", "/p/main/A.kt" to "a", "/p/main/Deleted.kt" to "r"),
+            GroupsCommands.followMove(assigned, "/p/src", "/p/main").assignments,
+        )
+    }
+
+    @Test
+    fun `followMove of an unassigned path, or onto itself, returns the same state`() {
+        val assigned = GroupsCommands.assign(twoGroups, listOf("/p/A.kt"), "a")
+
+        assertSame(assigned, GroupsCommands.followMove(assigned, "/p/B.kt", "/p/C.kt"))
+        assertSame(assigned, GroupsCommands.followMove(assigned, "/p/A.kt", "/p/A.kt"))
+    }
+
+    @Test
+    fun `retain unassigns every other path and keeps the groups`() {
+        val assigned = GroupsCommands.assign(
+            GroupsCommands.assign(twoGroups, listOf("/p/A.kt", "/p/B.kt"), "a"),
+            listOf("/p/C.kt"),
+            "r",
+        )
+
+        val retained = GroupsCommands.retain(assigned, setOf("/p/B.kt", "/p/Unassigned.kt"))
+
+        assertEquals(mapOf("/p/B.kt" to "a"), retained.assignments)
+        assertEquals(twoGroups.groups, retained.groups)
+        assertSame(assigned, GroupsCommands.retain(assigned, setOf("/p/A.kt", "/p/B.kt", "/p/C.kt")))
     }
 
     @Test

@@ -98,17 +98,27 @@ object GroupsCommands {
         state.copy(assignments = state.assignments - paths.toSet())
 
     /**
-     * Follows a rename or move from [oldPath] to [newPath]: the assignment of that path and of every
-     * path under it (when it is a directory) moves to the new location. As on disk, the moved
-     * entries replace whatever was assigned at the destination.
+     * Follows a rename or move from [oldPath] to [newPath]: each assigned path at or under [oldPath]
+     * is assigned to the same group at its new location, replacing that location's own assignment.
+     * Other paths under [newPath] keep theirs: they can be deletions still pending there.
+     *
+     * The old paths stay assigned: until the move is committed, the VCS lists each one as a deletion
+     * that belongs with the new file. An old path that is no change at all, such as that of a moved
+     * untracked file, shows nowhere and goes with [retain].
      */
-    fun movePath(state: GroupsState, oldPath: String, newPath: String): GroupsState {
+    fun followMove(state: GroupsState, oldPath: String, newPath: String): GroupsState {
         if (oldPath == newPath) return state
-        val (moving, staying) = state.assignments.entries.partition { (path, _) -> path.isAtOrUnder(oldPath) }
-        if (moving.isEmpty()) return state
-        val moved = moving.associate { (path, id) -> newPath + path.substring(oldPath.length) to id }
-        val kept = staying.filterNot { (path, _) -> path.isAtOrUnder(newPath) }.associate { it.key to it.value }
-        return state.copy(assignments = kept + moved)
+        val moved = state.assignments.entries
+            .filter { (path, _) -> path.isAtOrUnder(oldPath) }
+            .associate { (path, id) -> newPath + path.substring(oldPath.length) to id }
+        if (moved.isEmpty()) return state
+        return state.copy(assignments = state.assignments + moved)
+    }
+
+    /** Unassigns every path not in [paths]. */
+    fun retain(state: GroupsState, paths: Set<String>): GroupsState {
+        val kept = state.assignments.filterKeys { it in paths }
+        return if (kept.size == state.assignments.size) state else state.copy(assignments = kept)
     }
 
     private fun requireValidName(state: GroupsState, name: String, exceptId: String?) {
