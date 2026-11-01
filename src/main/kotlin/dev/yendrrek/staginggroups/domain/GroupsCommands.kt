@@ -115,6 +115,16 @@ object GroupsCommands {
         return state.copy(assignments = state.assignments + moved)
     }
 
+    /**
+     * Follows a rename the VCS reports from [oldPath] to [newPath], such as one made with `git mv`:
+     * [newPath] joins [oldPath]'s group, unless it is in a group already. [oldPath] keeps its group.
+     */
+    fun followRename(state: GroupsState, oldPath: String, newPath: String): GroupsState {
+        val id = state.assignments[oldPath] ?: return state
+        if (newPath in state.assignments) return state
+        return state.copy(assignments = state.assignments + (newPath to id))
+    }
+
     /** Unassigns every path not in [paths]. */
     fun retain(state: GroupsState, paths: Set<String>): GroupsState {
         val kept = state.assignments.filterKeys { it in paths }

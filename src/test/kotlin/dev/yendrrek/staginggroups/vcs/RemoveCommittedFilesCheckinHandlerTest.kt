@@ -1,5 +1,6 @@
 package dev.yendrrek.staginggroups.vcs
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.changes.ChangeListManager
@@ -34,7 +35,7 @@ class RemoveCommittedFilesCheckinHandlerTest : BasePlatformTestCase() {
             val group = GroupsCommands.create(GroupsState(), "Feature A", "", "a")
             GroupsCommands.assign(group, listOf(committed, partlyCommitted, notCommitted, assignedAhead), "a")
         }
-        changesView.changed = ChangedPaths(setOf(committed, partlyCommitted, notCommitted, "/p/Ungrouped.kt"), isLoaded = true)
+        changesView.changed = ChangedPaths(setOf(committed, partlyCommitted, notCommitted, "/p/Ungrouped.kt"), emptySet(), isLoaded = true)
     }
 
     override fun tearDown() {
@@ -64,7 +65,7 @@ class RemoveCommittedFilesCheckinHandlerTest : BasePlatformTestCase() {
 
     fun `test nothing changes while the changes view is still loading`() {
         settings.update { it.copy(autoCleanup = true) }
-        changesView.changed = ChangedPaths(emptySet(), isLoaded = false)
+        changesView.changed = ChangedPaths(emptySet(), emptySet(), isLoaded = false)
         val before = store.state
 
         commit(changedAfter = emptySet())
@@ -78,7 +79,7 @@ class RemoveCommittedFilesCheckinHandlerTest : BasePlatformTestCase() {
         val handler = RemoveCommittedFilesCheckinHandler(project)
 
         assertEquals(CheckinHandler.ReturnResult.COMMIT, handler.beforeCheckin())
-        changesView.changed = ChangedPaths(emptySet(), isLoaded = true)
+        changesView.changed = ChangedPaths(emptySet(), emptySet(), isLoaded = true)
         handler.checkinFailed(emptyList())
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -89,7 +90,7 @@ class RemoveCommittedFilesCheckinHandlerTest : BasePlatformTestCase() {
     private fun commit(changedAfter: Set<String>) {
         val handler = RemoveCommittedFilesCheckinHandler(project)
         assertEquals(CheckinHandler.ReturnResult.COMMIT, handler.beforeCheckin())
-        changesView.changed = ChangedPaths(changedAfter, isLoaded = changesView.changed?.isLoaded ?: true)
+        changesView.changed = ChangedPaths(changedAfter, emptySet(), isLoaded = changesView.changed?.isLoaded ?: true)
         handler.checkinSuccessful()
         // The handler acts after the change list's update; a callback queued behind its own runs after it.
         var handled = false
@@ -101,6 +102,8 @@ class RemoveCommittedFilesCheckinHandlerTest : BasePlatformTestCase() {
         var changed: ChangedPaths? = null
 
         override fun changedPaths(project: Project): ChangedPaths? = changed
+
+        override fun addChangeListener(project: Project, listener: Runnable, parentDisposable: Disposable) = Unit
 
         override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? = null
     }

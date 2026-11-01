@@ -9,26 +9,32 @@ object ChangedFiles {
      * Paths of every file the Commit tool window lists: changed, deleted and unversioned files, from
      * whichever view it shows.
      */
-    fun paths(project: Project): Set<String> = shownPaths(project).paths
+    fun paths(project: Project): Set<String> = shown(project).paths
+
+    /** Like [paths], or `null` while [loaded] is. */
+    fun loadedPaths(project: Project): Set<String>? = loaded(project)?.paths
 
     /**
-     * Like [paths], or `null` while the view the Commit tool window shows is still reading its
-     * repositories for the first time. The changelists count as read: wait for their update with
-     * [ChangeListManager.invokeAfterUpdate].
+     * What the view the Commit tool window shows lists, or `null` while that view is still reading
+     * its repositories for the first time. The changelists count as read: wait for their update
+     * with [ChangeListManager.invokeAfterUpdate].
      */
-    fun loadedPaths(project: Project): Set<String>? = shownPaths(project).takeIf { it.isLoaded }?.paths
+    fun loaded(project: Project): ChangedPaths? = shown(project).takeIf { it.isLoaded }
 
-    private fun shownPaths(project: Project): ChangedPaths =
-        VcsChangesView.EP_NAME.extensionList.firstNotNullOfOrNull { it.changedPaths(project) }
-            ?: ChangedPaths(changelistPaths(project), isLoaded = true)
+    private fun shown(project: Project): ChangedPaths =
+        VcsChangesView.EP_NAME.extensionList.firstNotNullOfOrNull { it.changedPaths(project) } ?: changelists(project)
 
-    private fun changelistPaths(project: Project): Set<String> {
+    private fun changelists(project: Project): ChangedPaths {
         val changeListManager = ChangeListManager.getInstance(project)
-        return buildSet {
-            for (change in changeListManager.allChanges) {
-                (change.afterRevision ?: change.beforeRevision)?.file?.path?.let(::add)
-            }
-            for (path in changeListManager.unversionedFilesPaths) add(path.path)
+        val paths = HashSet<String>()
+        val renames = HashSet<Rename>()
+        for (change in changeListManager.allChanges) {
+            val before = change.beforeRevision?.file?.path
+            val after = change.afterRevision?.file?.path
+            (after ?: before)?.let(paths::add)
+            if (before != null && after != null && before != after) renames += Rename(before, after)
         }
+        changeListManager.unversionedFilesPaths.mapTo(paths) { it.path }
+        return ChangedPaths(paths, renames, isLoaded = true)
     }
 }

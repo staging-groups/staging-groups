@@ -16,6 +16,6 @@
 - **Settings | Version Control | Staging Groups**: rename, recolour, reorder and delete groups.
 - Optional colours: a colour dot on each group node, and the group's colour on its files' editor
   tabs and rows in the Project view and Commit view. Off by default.
-- Files keep their group when renamed, moved or deleted in the IDE.
+- Files keep their group when renamed, moved or deleted in the IDE, or renamed with `git mv`.
 - **Remove Unchanged Files from Staging Groups**, and the optional setting **Remove committed files
   from staging groups**.

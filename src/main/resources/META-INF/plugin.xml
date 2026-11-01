@@ -13,7 +13,8 @@
         node under <i>Staged</i> and <i>Unstaged</i>, and stage, unstage or roll back a whole group in
         one action.
         <br/><br/>
-        Files keep their staging group when you rename, move or delete them in the IDE. Choose
+        Files keep their staging group when you rename, move or delete them in the IDE, or rename
+        them with <code>git mv</code>. Choose
         <b>Remove Unchanged Files from Staging Groups</b> to clear out files with nothing left to
         commit, or let each commit take its committed files out of their groups.
         <br/><br/>
@@ -62,6 +63,8 @@
                   topic="dev.yendrrek.staginggroups.state.StagingGroupsListener"/>
         <listener class="dev.yendrrek.staginggroups.lifecycle.VfsTracker"
                   topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+        <listener class="dev.yendrrek.staginggroups.vcs.RenameFollower$ChangeListTrigger"
+                  topic="com.intellij.openapi.vcs.changes.ChangeListListener"/>
     </projectListeners>
 
     <actions>

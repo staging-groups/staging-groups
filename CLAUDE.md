@@ -88,6 +88,10 @@ visibility; check its annotations with `javap -v`.
   `lifecycle/DynamicUnloadListener` before an unload: the platform drops extensions without
   repainting or rebuilding anything, and a tree node, colour or clipboard entry of the plugin's keeps
   its class loader alive. `PluginUnloadUiTest` checks the class loader is collected.
+- One retained node is a known, accepted limitation: a platform `Tree` keeps its last right-clicked
+  row in a private field until the next mouse release in that tree, so disabling the plugin straight
+  after using its menu there needs a restart to enable it again. Leave it: clearing the field by
+  reflection or faking a mouse event is ruled out.
 
 ## Coexistence with PrismTabs
 

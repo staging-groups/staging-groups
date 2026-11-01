@@ -74,6 +74,12 @@ fun RemoteRobot.deleteFromFixture(relativePath: String) {
     refreshVcs()
 }
 
+/** Renames or moves [from] to [to] in the fixture repository, as `git mv` in a terminal does, and makes the IDE notice. */
+fun RemoteRobot.gitMoveInFixture(from: String, to: String) {
+    runProcess("git", "-C", fixtureRepo.path, "mv", from, to)
+    refreshVcs()
+}
+
 /** Commits what is staged in the fixture repository, as `git commit` in a terminal does, and makes the IDE notice. */
 fun RemoteRobot.commitStagedInFixture() {
     runProcess("git", "-C", fixtureRepo.path, "commit", "--quiet", "--message", "Commit the staged changes")

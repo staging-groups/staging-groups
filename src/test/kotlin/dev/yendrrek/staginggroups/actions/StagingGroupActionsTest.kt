@@ -1,5 +1,6 @@
 package dev.yendrrek.staginggroups.actions
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -240,7 +241,9 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         var changed: Set<String>? = null
         var loaded = true
 
-        override fun changedPaths(project: Project): ChangedPaths? = changed?.let { ChangedPaths(it, loaded) }
+        override fun changedPaths(project: Project): ChangedPaths? = changed?.let { ChangedPaths(it, emptySet(), loaded) }
+
+        override fun addChangeListener(project: Project, listener: Runnable, parentDisposable: Disposable) = Unit
 
         override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? = selection
     }

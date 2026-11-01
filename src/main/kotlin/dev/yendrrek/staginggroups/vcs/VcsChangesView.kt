@@ -1,5 +1,6 @@
 package dev.yendrrek.staginggroups.vcs
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -16,6 +17,12 @@ interface VcsChangesView {
     fun changedPaths(project: Project): ChangedPaths?
 
     /**
+     * Calls [listener], on any thread, each time what the view lists may have changed, until
+     * [parentDisposable] is disposed.
+     */
+    fun addChangeListener(project: Project, listener: Runnable, parentDisposable: Disposable)
+
+    /**
      * The files and folders selected in the view's tree, including those under selected nodes, or
      * `null` when [dataContext] does not come from that tree.
      */
@@ -27,7 +34,10 @@ interface VcsChangesView {
 }
 
 /**
- * The [paths] of every file a [VcsChangesView] lists. [isLoaded] is `false` until the view has read
- * every repository once; until then, [paths] can miss changed files.
+ * The [paths] of every file a [VcsChangesView] lists, and the [renames] among them. [isLoaded] is
+ * `false` until the view has read every repository once; until then, [paths] can miss changed files.
  */
-data class ChangedPaths(val paths: Set<String>, val isLoaded: Boolean)
+data class ChangedPaths(val paths: Set<String>, val renames: Set<Rename>, val isLoaded: Boolean)
+
+/** A file the VCS lists at [newPath] as renamed or moved from [oldPath]. */
+data class Rename(val oldPath: String, val newPath: String)

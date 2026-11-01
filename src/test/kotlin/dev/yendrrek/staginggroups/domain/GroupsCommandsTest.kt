@@ -194,6 +194,27 @@ class GroupsCommandsTest {
     }
 
     @Test
+    fun `followRename puts the new path in the old path's group and keeps the old path assigned`() {
+        val assigned = GroupsCommands.assign(twoGroups, listOf("/p/README.md"), "r")
+
+        val renamed = GroupsCommands.followRename(assigned, "/p/README.md", "/p/NOTES.md")
+
+        assertEquals(mapOf("/p/README.md" to "r", "/p/NOTES.md" to "r"), renamed.assignments)
+    }
+
+    @Test
+    fun `followRename leaves a new path already in a group, and an unassigned old path, alone`() {
+        val assigned = GroupsCommands.assign(
+            GroupsCommands.assign(twoGroups, listOf("/p/A.kt"), "a"),
+            listOf("/p/B.kt"),
+            "r",
+        )
+
+        assertSame(assigned, GroupsCommands.followRename(assigned, "/p/A.kt", "/p/B.kt"))
+        assertSame(assigned, GroupsCommands.followRename(assigned, "/p/C.kt", "/p/D.kt"))
+    }
+
+    @Test
     fun `retain unassigns every other path and keeps the groups`() {
         val assigned = GroupsCommands.assign(
             GroupsCommands.assign(twoGroups, listOf("/p/A.kt", "/p/B.kt"), "a"),

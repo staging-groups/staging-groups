@@ -14,7 +14,8 @@ import dev.yendrrek.staginggroups.state.StagingGroupsStore
  * included. A deleted file keeps its group as it is: the VCS still lists it as a change.
  *
  * Follows what the IDE renames or moves. A rename outside the IDE reaches it as a deletion and a new
- * file, and the new file starts ungrouped.
+ * file; [dev.yendrrek.staginggroups.vcs.RenameFollower] follows it once the VCS reports it as a
+ * rename, as Git does for `git mv`.
  */
 class VfsTracker(private val project: Project) : BulkFileListener {
 
