@@ -130,12 +130,21 @@ intellijPlatform {
         }
 
         // INTERNAL_API_USAGES: Marketplace refuses an upload over it. MISSING_DEPENDENCIES: an
-        // unresolvable <depends> stops the plugin loading, and otherwise only prints.
+        // unresolvable <depends> stops the plugin loading, and otherwise only prints. NOT_DYNAMIC:
+        // the plugin must enable and disable without a restart. The deprecated, experimental and
+        // non-extendable levels flag an API before it breaks on a newer IDE.
         failureLevel = listOf(
             VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
             VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES,
             VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES,
+            VerifyPluginTask.FailureLevel.NON_EXTENDABLE_API_USAGES,
+            VerifyPluginTask.FailureLevel.DEPRECATED_API_USAGES,
+            VerifyPluginTask.FailureLevel.SCHEDULED_FOR_REMOVAL_API_USAGES,
+            VerifyPluginTask.FailureLevel.EXPERIMENTAL_API_USAGES,
             VerifyPluginTask.FailureLevel.MISSING_DEPENDENCIES,
+            VerifyPluginTask.FailureLevel.INVALID_PLUGIN,
+            VerifyPluginTask.FailureLevel.PLUGIN_STRUCTURE_WARNINGS,
+            VerifyPluginTask.FailureLevel.NOT_DYNAMIC,
         )
     }
 
