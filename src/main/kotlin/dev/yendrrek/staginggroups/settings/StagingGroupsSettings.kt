@@ -12,7 +12,7 @@ import dev.yendrrek.staginggroups.state.StagingGroupsListener
 
 /**
  * Persisted Staging Groups settings. [colourTabs] and [colourTrees] apply only while [useColours]
- * is on.
+ * is on. [autoCleanup] is **Remove committed files from staging groups**.
  *
  * Persisted: never rename this class or its properties, or change their XML names. `@OptionTag` is
  * what makes the platform's serialiser store these final fields.

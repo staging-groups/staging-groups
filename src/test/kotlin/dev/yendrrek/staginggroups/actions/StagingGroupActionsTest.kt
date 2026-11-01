@@ -80,6 +80,18 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         )
     }
 
+    fun `test menu says there are no staging groups, disabled, until one exists`() {
+        store.update { GroupsState() }
+        val choices = action("StagingGroups.Assign.Choices") as StagingGroupChoices
+        val event = selecting(foo)
+
+        val entries = choices.getChildren(event).map { updated(it, event).presentation }
+
+        assertEquals(listOf("No Staging Groups"), entries.map { it.text })
+        assertTrue(entries.single().isVisible)
+        assertFalse(entries.single().isEnabled)
+    }
+
     fun `test assigning moves every selected file, counting a file listed twice once, and ticks the group`() {
         store.update { GroupsCommands.assign(it, listOf(bar), "r") }
         val featureA = assignAction("a")

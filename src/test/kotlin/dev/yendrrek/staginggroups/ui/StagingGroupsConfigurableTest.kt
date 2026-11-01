@@ -50,6 +50,7 @@ class StagingGroupsConfigurableTest : BasePlatformTestCase() {
         assertFalse(configurable.useColours.isSelected)
         assertTrue(configurable.colourTabs.isSelected)
         assertTrue(configurable.colourTrees.isSelected)
+        assertFalse(configurable.removeCommittedFiles.isSelected)
         assertFalse(configurable.isModified)
     }
 
@@ -94,6 +95,17 @@ class StagingGroupsConfigurableTest : BasePlatformTestCase() {
         configurable.apply()
 
         assertEquals(SettingsState(useColours = true, colourTabs = false, colourTrees = true), settings.snapshot())
+        assertFalse(configurable.isModified)
+    }
+
+    fun `test applying remove committed files saves it, whatever the colour switch`() {
+        configurable.removeCommittedFiles.isSelected = true
+        assertTrue(configurable.removeCommittedFiles.isEnabled)
+        assertTrue(configurable.isModified)
+
+        configurable.apply()
+
+        assertEquals(SettingsState(autoCleanup = true), settings.snapshot())
         assertFalse(configurable.isModified)
     }
 

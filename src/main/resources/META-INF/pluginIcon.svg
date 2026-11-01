@@ -1,12 +1,11 @@
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M32.0845 7.94025V4H24.0203V7.9896H16.029V4H7.91553V7.94025H4V36H16.0044V32.0045C16.0058 30.9457 16.4274 29.9308 17.1766 29.1826C17.9258 28.4345 18.9412 28.0143 20 28.0143C21.0588 28.0143 22.0743 28.4345 22.8234 29.1826C23.5726 29.9308 23.9942 30.9457 23.9956 32.0045V36H36V7.94025H32.0845Z"
-          fill="url(#paint0_linear)"/>
-    <defs>
-        <linearGradient id="paint0_linear" x1="2.94192" y1="4.89955" x2="37.7772" y2="39.7345"
-                        gradientUnits="userSpaceOnUse">
-            <stop offset="0.15937" stop-color="#3BEA62"/>
-            <stop offset="0.5404" stop-color="#3C99CC"/>
-            <stop offset="0.93739" stop-color="#6B57FF"/>
-        </linearGradient>
-    </defs>
+    <!-- A folder holding three staging groups, each a row with its colour dot. -->
+    <path d="M3 9C3 7.89543 3.89543 7 5 7H14.1716C14.702 7 15.2107 7.21071 15.5858 7.58579L18 10H35C36.1046 10 37 10.8954 37 12V32C37 33.1046 36.1046 34 35 34H5C3.89543 34 3 33.1046 3 32V9Z"
+          fill="#3574F0"/>
+    <rect x="8" y="14" width="24" height="4.5" rx="2.25" fill="#FFFFFF"/>
+    <rect x="8" y="20.75" width="24" height="4.5" rx="2.25" fill="#FFFFFF"/>
+    <rect x="8" y="27.5" width="24" height="4.5" rx="2.25" fill="#FFFFFF"/>
+    <circle cx="10.25" cy="16.25" r="1.75" fill="#E8A33E"/>
+    <circle cx="10.25" cy="23" r="1.75" fill="#55A76A"/>
+    <circle cx="10.25" cy="29.75" r="1.75" fill="#DB3B4B"/>
 </svg>

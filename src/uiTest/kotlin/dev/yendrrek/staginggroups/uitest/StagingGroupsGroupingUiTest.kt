@@ -72,6 +72,21 @@ class StagingGroupsGroupingUiTest {
     }
 
     @Test
+    fun `a group node's tooltip gives its name and file count`(robot: RemoteRobot) {
+        robot.chooseGroupBy("Staging Groups")
+        robot.waitForStagingRows(
+            "Staged 3 files", "Feature A 2 files", "Baz.kt src", "Foo.kt src", "Bar.kt src",
+            "Unstaged 5 files", "Feature A 2 files", "Baz.kt src", "Qux.kt src", "Refactor 1 file", "Util.kt src/util",
+            "Fresh.kt src", "README.md ui-test-fixture",
+        )
+
+        robot.stagingTree().hoverRow("Feature A 2 files", occurrence = 1)
+
+        robot.find(ComponentFixture::class.java, byXpath("//div[@visible_text=\"Staging group 'Feature A': 2 files\"]"), Duration.ofSeconds(10))
+        robot.saveReviewScreenshot("group-node-tooltip")
+    }
+
+    @Test
     fun `staging a group node stages every file in it`(robot: RemoteRobot) {
         robot.chooseGroupBy("Staging Groups")
         robot.waitForStagingRows(

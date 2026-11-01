@@ -121,3 +121,18 @@ fun RemoteRobot.useColours(): Boolean =
         """,
         false,
     )
+
+/** Saves **Remove committed files from staging groups** as [enabled], the other settings unchanged. */
+fun RemoteRobot.setRemoveCommittedFiles(enabled: Boolean) {
+    runJs(
+        """
+        $PLUGIN_PRELUDE
+        companion('dev.yendrrek.staginggroups.settings.StagingGroupsSettings').getInstance(project).update(
+            new Packages.kotlin.jvm.functions.Function1({
+                invoke: function (state) { return state.copy(state.useColours, state.colourTabs, state.colourTrees, $enabled) }
+            })
+        )
+        """,
+        true,
+    )
+}

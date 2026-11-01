@@ -6,22 +6,40 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.project.DumbAware
+import dev.yendrrek.staginggroups.StagingGroupsBundle
 import dev.yendrrek.staginggroups.domain.GroupsCommands
 import dev.yendrrek.staginggroups.settings.StagingGroupsSettings
 import dev.yendrrek.staginggroups.state.StagingGroupsStore
 import dev.yendrrek.staginggroups.ui.StagingGroupIcons
 
-/** One [AssignToStagingGroupAction] per staging group, in display order. */
+/**
+ * One [AssignToStagingGroupAction] per staging group, in display order, or [NoStagingGroupsAction]
+ * while there are none.
+ */
 class StagingGroupChoices : ActionGroup(), DumbAware {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun getChildren(e: AnActionEvent?): Array<AnAction> {
         val project = e?.project ?: return EMPTY_ARRAY
-        return StagingGroupsStore.getInstance(project).snapshot().groups
-            .map { AssignToStagingGroupAction(it.id) }
-            .toTypedArray()
+        val groups = StagingGroupsStore.getInstance(project).snapshot().groups
+        if (groups.isEmpty()) return arrayOf(NoStagingGroupsAction())
+        return groups.map { AssignToStagingGroupAction(it.id) }.toTypedArray()
     }
+}
+
+/** A disabled entry saying there are no staging groups yet, in place of the list of groups. */
+class NoStagingGroupsAction : AnAction(), DumbAware {
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+    override fun update(e: AnActionEvent) {
+        e.presentation.text = StagingGroupsBundle.message("menu.no.groups")
+        e.presentation.isVisible = true
+        e.presentation.isEnabled = false
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {}
 }
 
 /**

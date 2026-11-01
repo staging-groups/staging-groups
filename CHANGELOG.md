@@ -3,3 +3,19 @@
 # Staging Groups Changelog
 
 ## [Unreleased]
+
+### Added
+
+- Staging groups: named groups for changed files, in the Git staging area and in the Commit view's
+  changelists.
+- **Group By | Staging Groups** shows each group as a node under *Staged* and *Unstaged*. Stage,
+  unstage or roll back a whole group from its node.
+- **Staging Group** context menu in the Commit view, the staging area, the Project view and editor
+  tabs: assign files to a group, create a group, take files out of their group. A folder stands for
+  the changed files under it.
+- **Settings | Version Control | Staging Groups**: rename, recolour, reorder and delete groups.
+- Optional colours: a colour dot on each group node, and the group's colour on its files' editor
+  tabs and rows in the Project view and Commit view. Off by default.
+- Files keep their group when renamed, moved or deleted in the IDE.
+- **Remove Unchanged Files from Staging Groups**, and the optional setting **Remove committed files
+  from staging groups**.

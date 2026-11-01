@@ -24,7 +24,7 @@ fun RemoteRobot.chooseFromStagingGroupMenu(item: String, screenshot: String? = n
  * A component matching [xpath] that is on screen. Menus hold more than one component per item, some
  * hidden, so a plain find is ambiguous.
  */
-private fun RemoteRobot.showingComponent(xpath: String): ComponentFixture {
+internal fun RemoteRobot.showingComponent(xpath: String): ComponentFixture {
     var showing: ComponentFixture? = null
     var states = emptyList<Boolean>()
     try {

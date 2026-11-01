@@ -14,7 +14,10 @@ import dev.yendrrek.staginggroups.settings.StagingGroupsSettings
 import dev.yendrrek.staginggroups.state.StagingGroupsStore
 import javax.swing.JLabel
 
-/** **Settings | Version Control | Staging Groups**: the colour settings and every staging group. */
+/**
+ * **Settings | Version Control | Staging Groups**: the colour settings, clean-up after a commit, and
+ * every staging group.
+ */
 class StagingGroupsConfigurable(project: Project) :
     BoundSearchableConfigurable(StagingGroupsBundle.message("configurable.display.name"), "", ID) {
 
@@ -25,6 +28,7 @@ class StagingGroupsConfigurable(project: Project) :
     internal lateinit var useColours: JBCheckBox
     internal lateinit var colourTabs: JBCheckBox
     internal lateinit var colourTrees: JBCheckBox
+    internal lateinit var removeCommittedFiles: JBCheckBox
 
     override fun createPanel(): DialogPanel = panel {
         row(NO_LABEL) {
@@ -38,6 +42,11 @@ class StagingGroupsConfigurable(project: Project) :
                 colourTrees = checkBox(StagingGroupsBundle.message("settings.colour.trees")).component
             }
         }.enabledIf(useColours.selected)
+        row(NO_LABEL) {
+            removeCommittedFiles = checkBox(StagingGroupsBundle.message("settings.remove.committed.files"))
+                .comment(StagingGroupsBundle.message("settings.remove.committed.files.comment"))
+                .component
+        }
         group(StagingGroupsBundle.message("settings.groups.title"), true) {
             row(NO_LABEL) {
                 cell(groupsTable.component).align(Align.FILL)
@@ -52,6 +61,7 @@ class StagingGroupsConfigurable(project: Project) :
             useColours.isSelected = current.useColours
             colourTabs.isSelected = current.colourTabs
             colourTrees.isSelected = current.colourTrees
+            removeCommittedFiles.isSelected = current.autoCleanup
             groupsTable.showColours(current.useColours)
             groupsTable.reset(store.snapshot().groups)
         }
@@ -71,6 +81,7 @@ class StagingGroupsConfigurable(project: Project) :
         useColours = useColours.isSelected,
         colourTabs = colourTabs.isSelected,
         colourTrees = colourTrees.isSelected,
+        autoCleanup = removeCommittedFiles.isSelected,
     )
 
     companion object {

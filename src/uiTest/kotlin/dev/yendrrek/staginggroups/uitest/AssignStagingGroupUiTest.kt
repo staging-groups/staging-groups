@@ -90,6 +90,19 @@ class AssignStagingGroupUiTest {
     }
 
     @Test
+    fun `with no staging groups the menu says so, disabled, above New Staging Group`(robot: RemoteRobot) {
+        robot.setStagingGroups(emptyMap())
+        val tree = robot.stagingTree()
+        tree.rightClickRow(tree.rowIndex("Bar.kt src"))
+        robot.showingComponent("//div[@class='ActionMenu' and @text='Staging Group']").click()
+
+        val noGroups = robot.showingComponent("//div[@class='ActionMenuItem' and @text='No Staging Groups']")
+        assertFalse(noGroups.callJs<Boolean>("component.isEnabled()", true)) { "No Staging Groups is enabled" }
+        robot.saveReviewScreenshot("staging-group-menu-empty")
+        repeat(2) { Keyboard(robot).escape() }
+    }
+
+    @Test
     fun `removing a file from its staging group ungroups it`(robot: RemoteRobot) {
         val tree = robot.stagingTree()
         tree.rightClickRow(tree.rowIndex("Util.kt src/util"))
