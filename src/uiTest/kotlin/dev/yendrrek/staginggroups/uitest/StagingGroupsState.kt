@@ -90,12 +90,21 @@ fun RemoteRobot.stagingGroupList(): List<String> =
 
 /** Saves the Staging Groups settings with only **Use colours for staging groups** changed. */
 fun RemoteRobot.setUseColours(useColours: Boolean) {
+    updateSettings("$useColours", "state.colourTabs", "state.colourTrees")
+}
+
+/** Saves the three colour settings, each as given. */
+fun RemoteRobot.setColourSettings(useColours: Boolean, colourTabs: Boolean, colourTrees: Boolean) {
+    updateSettings("$useColours", "$colourTabs", "$colourTrees")
+}
+
+private fun RemoteRobot.updateSettings(useColours: String, colourTabs: String, colourTrees: String) {
     runJs(
         """
         $PLUGIN_PRELUDE
         companion('dev.yendrrek.staginggroups.settings.StagingGroupsSettings').getInstance(project).update(
             new Packages.kotlin.jvm.functions.Function1({
-                invoke: function (state) { return state.copy($useColours, state.colourTabs, state.colourTrees, state.autoCleanup) }
+                invoke: function (state) { return state.copy($useColours, $colourTabs, $colourTrees, state.autoCleanup) }
             })
         )
         """,

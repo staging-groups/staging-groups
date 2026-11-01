@@ -37,6 +37,8 @@ env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 DISPLAY=:99 ./gradlew runIdeForUiTes
   in `~/.gradle/gradle.properties`. Only one sandbox can run at a time: both listen on port 8082.
 - A list popup, such as a table cell's drop-down, ignores remote-robot's clicks. Choose an item by
   typing its text, which filters the list, then pressing Enter.
+- `PluginUnloadUiTest` disables and re-enables the plugin in the sandbox. When it fails with the class
+  loader retained, the plugin cannot load back: restart the sandbox.
 - Stop Xvfb with `pkill -x Xvfb`.
 
 ## Verify a platform API
@@ -78,6 +80,10 @@ visibility; check its annotations with `javap -v`.
   Git disabled. The rest of the plugin reaches the staging area only through the `vcsChangesView`
   extension point (`VcsChangesView`), which `git/GitStagingAreaView` implements.
 - Register listeners in `plugin.xml`, never as `<component>`, so the plugin unloads without a restart.
+- Whatever the plugin leaves in the platform's UI must be taken back in
+  `lifecycle/DynamicUnloadListener` before an unload: the platform drops extensions without
+  repainting or rebuilding anything, and a tree node, colour or clipboard entry of the plugin's keeps
+  its class loader alive. `PluginUnloadUiTest` checks the class loader is collected.
 
 ## Coexistence with PrismTabs
 
