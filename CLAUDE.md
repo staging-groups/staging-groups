@@ -1,18 +1,13 @@
 # Staging Groups
 
-IntelliJ Platform plugin that adds named groups to the Git staging area and the Commit view. The
-implementation plan is `docs/staging-groups-plan.md` (gitignored): work one stage at a time, and
-start the next stage only when the current one's acceptance checks pass in the sandbox IDE.
+IntelliJ Platform plugin that adds named groups to the Git staging area and the Commit view.
 
 ## Build and test
 
 | Command | What it does |
 |---|---|
 | `./gradlew build` | Compile and run the fast unit and platform tests |
-| `./gradlew runIde` | Sandbox IDE for manual use |
 | `./gradlew verifyPlugin -PverifyIde=<version>` | Plugin Verifier against one IDE from `./gradlew printProductsReleases` |
-
-Toolchain is JDK 21; Gradle provisions it.
 
 ## Run the UI tests
 
@@ -21,7 +16,7 @@ The `uiTest` source set drives a sandbox IDE through remote-robot. The sandbox o
 before every launch, with the staging area enabled by `src/uiTest/sandbox-config`.
 
 ```bash
-Xvfb :99 -screen 0 1920x1080x24 &
+Xvfb :99 -screen 0 1920x1080x24 &   # stop it later with: pkill -x Xvfb
 env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 DISPLAY=:99 ./gradlew runIdeForUiTests &
 ./gradlew uiTest
 ```
@@ -41,9 +36,6 @@ env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 DISPLAY=:99 ./gradlew runIdeForUiTes
   and the following tests fail on stale trees.
 - A list popup, such as a table cell's drop-down, ignores remote-robot's clicks. Choose an item by
   typing its text, which filters the list, then pressing Enter.
-- `PluginUnloadUiTest` disables and re-enables the plugin in the sandbox. When it fails with the class
-  loader retained, the plugin cannot load back: restart the sandbox.
-- Stop Xvfb with `pkill -x Xvfb`.
 
 ## Verify a platform API
 
@@ -67,7 +59,7 @@ the Kotlin visibility from the classes the plugin compiles against:
 ./gradlew kotlinVisibility --args='git4idea.index.GitStageTracker git4idea.index.GitStageManagerKt'
 ```
 
-Top-level functions live in the file's `...Kt` class. A class reported as Java has no Kotlin
+A top-level function lives in the file's `...Kt` class. A class reported as Java has no Kotlin
 visibility; check its annotations with `javap -v`.
 
 ## Platform API rules
@@ -87,25 +79,16 @@ visibility; check its annotations with `javap -v`.
 - Whatever the plugin leaves in the platform's UI must be taken back in
   `lifecycle/DynamicUnloadListener` before an unload: the platform drops extensions without
   rebuilding anything, and a tree node or clipboard entry of the plugin's keeps
-  its class loader alive. `PluginUnloadUiTest` checks the class loader is collected.
-- One retained node is a known, accepted limitation: a platform `Tree` keeps its last right-clicked
-  row in a private field until the next mouse release in that tree, so disabling the plugin straight
-  after using its menu there needs a restart to enable it again. Leave it: clearing the field by
-  reflection or faking a mouse event is ruled out.
-
-## Coexistence with PrismTabs
-
-PrismTabs (`~/dev/prismtabs`, ID `io.prismtabs`) colours editor tabs.
-
-- Staging Groups colours nothing: no `editorTabColorProvider`, no colour per group. Group nodes show
-  `AllIcons.Nodes.Folder` and a bold name.
-- Never take `anchor="first"` in `EditorTabPopupMenu`; that slot is PrismTabs'.
-- UI text says "Staging Group", never a bare "Group".
-- No `Alt+1…9` shortcuts; they are the IDE's tool-window shortcuts.
+  its class loader alive. `PluginUnloadUiTest` disables and re-enables the plugin in the sandbox and
+  checks the class loader is collected; when it fails, the plugin cannot load back until the sandbox
+  restarts.
+- A platform `Tree` keeps its last right-clicked row, so disabling the plugin straight after using
+  its menu there needs a restart to enable it again. Leave it: no reflection or synthetic mouse events.
 
 ## Conventions
 
 - British English in code and UI text.
+- UI text says "Staging Group", never a bare "Group".
 - Never change the plugin `<id>`, or rename a persisted state class, property or XML name: users
   would lose their saved groups. `PersistenceTest` reads the files in `src/test/resources/saved-state`
   to catch it.
