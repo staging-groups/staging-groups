@@ -6,17 +6,15 @@ import com.intellij.openapi.vcs.changes.ui.ChangesBrowserNodeRenderer
 import com.intellij.ui.SimpleTextAttributes
 import dev.yendrrek.staginggroups.StagingGroupsBundle
 import dev.yendrrek.staginggroups.domain.StagingGroup
-import dev.yendrrek.staginggroups.ui.StagingGroupIcons
 
 /**
- * A staging group in a changes tree: a folder icon, or the group's colour dot while [useColours] is
- * on, then the name in bold and the file count. Its tooltip repeats both, for a name cut short by a
- * narrow tool window.
+ * A staging group in a changes tree: a folder icon, the name in bold and the file count. Its tooltip
+ * repeats both, for a name cut short by a narrow tool window.
  */
-class StagingGroupNode(val group: StagingGroup, private val useColours: Boolean) : ChangesBrowserNode<StagingGroup>(group) {
+class StagingGroupNode(val group: StagingGroup) : ChangesBrowserNode<StagingGroup>(group) {
 
     override fun render(renderer: ChangesBrowserNodeRenderer, selected: Boolean, expanded: Boolean, hasFocus: Boolean) {
-        renderer.icon = renderer.project?.let { StagingGroupIcons.colourDot(it, group, useColours) } ?: AllIcons.Nodes.Folder
+        renderer.icon = AllIcons.Nodes.Folder
         renderer.append(group.name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
         appendCount(renderer)
         renderer.toolTipText = StagingGroupsBundle.message("node.tooltip", group.name, fileCount)

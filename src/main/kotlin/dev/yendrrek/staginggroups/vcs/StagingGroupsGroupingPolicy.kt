@@ -6,14 +6,13 @@ import com.intellij.openapi.vcs.changes.ui.ChangesGroupingPolicyFactory
 import com.intellij.openapi.vcs.changes.ui.SimpleChangesGroupingPolicy
 import com.intellij.openapi.vcs.changes.ui.StaticFilePath
 import dev.yendrrek.staginggroups.domain.StagingGroup
-import dev.yendrrek.staginggroups.settings.StagingGroupsSettings
 import dev.yendrrek.staginggroups.state.StagingGroupsStore
 import javax.swing.tree.DefaultTreeModel
 
 /**
  * Puts each assigned file under its staging group's node, above any repository, module or directory
  * grouping. Built for every tree rebuild, possibly off the EDT, so it reads one snapshot of the
- * groups and settings taken when it is created.
+ * groups taken when it is created.
  */
 class StagingGroupsGroupingPolicy(project: Project, model: DefaultTreeModel) :
     SimpleChangesGroupingPolicy<StagingGroupsGroupingPolicy.GroupKey>(model) {
@@ -25,13 +24,12 @@ class StagingGroupsGroupingPolicy(project: Project, model: DefaultTreeModel) :
     data class GroupKey(val group: StagingGroup)
 
     private val groups = StagingGroupsStore.getInstance(project).snapshot()
-    private val useColours = StagingGroupsSettings.getInstance(project).snapshot().useColours
 
     override fun getGroupRootValueFor(nodePath: StaticFilePath, node: ChangesBrowserNode<*>): GroupKey? =
         groups.groupFor(nodePath.filePath.path)?.let(::GroupKey)
 
     override fun createGroupRootNode(value: GroupKey): ChangesBrowserNode<*> =
-        StagingGroupNode(value.group, useColours).also { it.markAsHelperNode() }
+        StagingGroupNode(value.group).also { it.markAsHelperNode() }
 
     class Factory : ChangesGroupingPolicyFactory() {
         override fun createGroupingPolicy(project: Project, model: DefaultTreeModel) =

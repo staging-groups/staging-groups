@@ -4,16 +4,12 @@ import com.intellij.remoterobot.RemoteRobot
 import com.intellij.remoterobot.fixtures.ActionButtonFixture
 import com.intellij.remoterobot.fixtures.CommonContainerFixture
 import com.intellij.remoterobot.fixtures.ComponentFixture
-import com.intellij.remoterobot.fixtures.JCheckboxFixture
 import com.intellij.remoterobot.fixtures.JTableFixture
 import com.intellij.remoterobot.fixtures.JTreeFixture
 import com.intellij.remoterobot.search.locators.byXpath
 import com.intellij.remoterobot.utils.Keyboard
-import com.intellij.remoterobot.utils.waitFor
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -27,10 +23,8 @@ class ManageStagingGroupsUiTest {
     @BeforeEach
     fun setUp(robot: RemoteRobot) {
         robot.resetFixtureRepo()
-        robot.setUseColours(false)
         robot.setStagingGroups(
             linkedMapOf("Feature A" to listOf("src/Foo.kt", "src/Baz.kt", "src/Qux.kt"), "Refactor" to listOf("src/util/Util.kt")),
-            colours = mapOf("Feature A" to "Blue", "Refactor" to "Green"),
         )
         robot.activateCommitToolWindow()
         robot.setStagingTreeGrouping("directory", false)
@@ -44,26 +38,26 @@ class ManageStagingGroupsUiTest {
         robot.setStagingTreeGrouping("staging-groups", false)
         robot.setStagingTreeGrouping("directory", true)
         robot.setStagingGroups(emptyMap())
-        robot.setUseColours(false)
         robot.resetFixtureRepo()
     }
 
     @Test
-    fun `Manage Staging Groups opens the settings page, whose colour column follows Use colours`(robot: RemoteRobot) {
+    fun `group nodes show a folder icon`(robot: RemoteRobot) {
+        val tree = robot.stagingTree()
+
+        assertEquals("Folder", tree.rowIcon(tree.rowIndex("Feature A 2 files")))
+        assertEquals("Folder", tree.rowIcon(tree.rowIndex("Refactor 1 file")))
+    }
+
+    @Test
+    fun `Manage Staging Groups opens the settings page, listing each group by name`(robot: RemoteRobot) {
         val settings = robot.openManageStagingGroups()
         val table = settings.groupsTable()
+
         assertEquals(listOf(listOf("Feature A"), listOf("Refactor")), table.collectItems())
-        assertFalse(settings.checkBox("Colour editor tabs").isEnabled())
+        assertEquals(1, table.columnCount)
         robot.saveReviewScreenshot("settings-page")
-
-        settings.checkBox("Use colours for staging groups").select()
-
-        waitFor(Duration.ofSeconds(5), Duration.ofMillis(100), "the colour column") { table.columnCount == 2 }
-        assertEquals(listOf(listOf("Feature A", "Blue"), listOf("Refactor", "Green")), table.collectItems())
-        assertTrue(settings.checkBox("Colour editor tabs").isEnabled())
-        robot.saveReviewScreenshot("settings-page-colours")
         settings.button("Cancel").click()
-        assertFalse(robot.useColours())
     }
 
     @Test
@@ -87,7 +81,7 @@ class ManageStagingGroupsUiTest {
             "Unstaged 5 files", "Refactor 1 file", "Util.kt src/util", "Feature B 2 files", "Baz.kt src", "Qux.kt src",
             "Fresh.kt src", "README.md ui-test-fixture",
         )
-        assertEquals(listOf("Refactor:Green", "Feature B:Blue"), robot.stagingGroupList())
+        assertEquals(listOf("Refactor", "Feature B"), robot.stagingGroupList())
     }
 
     @Test
@@ -109,55 +103,8 @@ class ManageStagingGroupsUiTest {
             "Unstaged 5 files", "Feature A 2 files", "Baz.kt src", "Qux.kt src", "Fresh.kt src", "README.md ui-test-fixture",
             "Util.kt src/util",
         )
-        // The new group takes the first colour no other group uses.
-        assertEquals(listOf("Feature A:Blue", "Docs:Green"), robot.stagingGroupList())
+        assertEquals(listOf("Feature A", "Docs"), robot.stagingGroupList())
         assertEquals(setOf("src/Foo.kt", "src/Baz.kt", "src/Qux.kt"), robot.stagingGroupAssignments().keys)
-    }
-
-    @Test
-    fun `Use colours swaps the folder icons for colour dots and back, without a restart`(robot: RemoteRobot) {
-        val tree = robot.stagingTree()
-        assertEquals("Folder", tree.rowIcon(tree.rowIndex("Feature A 2 files")))
-
-        robot.openManageStagingGroups().apply {
-            checkBox("Use colours for staging groups").select()
-            button("OK").click()
-        }
-        waitFor(Duration.ofSeconds(5), Duration.ofMillis(100), "colour dots on group nodes") {
-            tree.rowIcon(tree.rowIndex("Feature A 2 files")) == "ColorIcon"
-        }
-        assertEquals("ColorIcon", tree.rowIcon(tree.rowIndex("Refactor 1 file")))
-        robot.saveReviewScreenshot("staging-tree-colour-dots")
-
-        robot.openManageStagingGroups().apply {
-            checkBox("Use colours for staging groups").unselect()
-            button("OK").click()
-        }
-        waitFor(Duration.ofSeconds(5), Duration.ofMillis(100), "folder icons on group nodes") {
-            tree.rowIcon(tree.rowIndex("Feature A 2 files")) == "Folder"
-        }
-    }
-
-    @Test
-    fun `recolouring from the colour cell saves the chosen File Colors colour`(robot: RemoteRobot) {
-        robot.setUseColours(true)
-        val settings = robot.openManageStagingGroups()
-        val table = settings.groupsTable()
-
-        table.clickCell(0, 1)
-        robot.find(ComponentFixture::class.java, byXpath("//div[@class='MyList']"), Duration.ofSeconds(5))
-        robot.saveReviewScreenshot("settings-colour-popup")
-        // By keyboard: remote-robot's clicks never reach this popup, though a real pointer's do.
-        Keyboard(robot).enterText("Violet")
-        Keyboard(robot).enter()
-        waitFor(Duration.ofSeconds(5), Duration.ofMillis(100), "the table to show the chosen colour") {
-            table.collectItems() == listOf(listOf("Feature A", "Violet"), listOf("Refactor", "Green"))
-        }
-        settings.button("OK").click()
-
-        waitFor(Duration.ofSeconds(5), Duration.ofMillis(100), "the new colour to be saved") {
-            robot.stagingGroupList() == listOf("Feature A:Violet", "Refactor:Green")
-        }
     }
 
     private companion object {
@@ -187,11 +134,6 @@ private fun CommonContainerFixture.groupsTable(): JTableFixture =
 private fun CommonContainerFixture.toolbarButton(name: String): ActionButtonFixture =
     find(ActionButtonFixture::class.java, byXpath("//div[@class='ActionButton' and @accessiblename='$name']"), Duration.ofSeconds(5))
 
-private fun CommonContainerFixture.checkBox(text: String): JCheckboxFixture =
-    find(JCheckboxFixture::class.java, byXpath("//div[@class='JBCheckBox' and @accessiblename='$text']"), Duration.ofSeconds(5))
-
-private fun ComponentFixture.isEnabled(): Boolean = callJs("component.isEnabled()", true)
-
 /** Closes the Settings dialog a failed test left open, discarding its edits. */
 private fun RemoteRobot.closeSettingsIfOpen() {
     repeat(2) {
@@ -213,7 +155,6 @@ private fun JTreeFixture.rowIcon(row: Int): String = callJs(
     }
     var icon = iconOf(cell)
     if (icon == null) 'none'
-    else if (icon instanceof com.intellij.util.ui.ColorIcon) 'ColorIcon'
     else if (icon === com.intellij.icons.AllIcons.Nodes.Folder) 'Folder'
     else '' + icon
     """,

@@ -17,8 +17,8 @@ class StagingGroupsGroupingPolicyTest : BasePlatformTestCase() {
         // The light project is shared by every test class: start from empty state.
         StagingGroupsStore.getInstance(project).update { _ ->
             GroupsState()
-                .let { GroupsCommands.create(it, "Refactor", "", id = "r") }
-                .let { GroupsCommands.create(it, "Feature A", "", id = "a") }
+                .let { GroupsCommands.create(it, "Refactor", id = "r") }
+                .let { GroupsCommands.create(it, "Feature A", id = "a") }
                 .let { GroupsCommands.assign(it, listOf("/p/src/Foo.kt", "/p/src/util/Bar.kt"), "a") }
                 .let { GroupsCommands.assign(it, listOf("/p/src/util/Util.kt"), "r") }
         }

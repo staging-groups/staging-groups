@@ -34,7 +34,7 @@ class RenameFollowerTest : BasePlatformTestCase() {
         ExtensionTestUtil.maskExtensions(VcsChangesView.EP_NAME, listOf(changesView), testRootDisposable)
         // The light project is shared by every test class: start from one group and a new follower.
         store.update {
-            val group = GroupsCommands.create(GroupsState(), "Refactor", "", "r")
+            val group = GroupsCommands.create(GroupsState(), "Refactor", "r")
             GroupsCommands.assign(group, listOf(readme.oldPath, util.oldPath), "r")
         }
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

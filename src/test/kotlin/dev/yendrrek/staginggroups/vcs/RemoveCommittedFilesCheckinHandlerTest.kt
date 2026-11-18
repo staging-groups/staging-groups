@@ -32,7 +32,7 @@ class RemoveCommittedFilesCheckinHandlerTest : BasePlatformTestCase() {
         ExtensionTestUtil.maskExtensions(VcsChangesView.EP_NAME, listOf(changesView), testRootDisposable)
         // The light project is shared by every test class: start from one group.
         store.update {
-            val group = GroupsCommands.create(GroupsState(), "Feature A", "", "a")
+            val group = GroupsCommands.create(GroupsState(), "Feature A", "a")
             GroupsCommands.assign(group, listOf(committed, partlyCommitted, notCommitted, assignedAhead), "a")
         }
         changesView.changed = ChangedPaths(setOf(committed, partlyCommitted, notCommitted, "/p/Ungrouped.kt"), emptySet(), isLoaded = true)

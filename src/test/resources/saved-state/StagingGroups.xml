@@ -1,7 +1,7 @@
 <component name="StagingGroups">
   <groups>
-    <group id="a" name="Feature A" colourId="Blue" order="0" />
-    <group id="r" name="auth_flow &amp; &lt;more&gt;" colourId="" order="1" />
+    <group id="a" name="Feature A" order="0" />
+    <group id="r" name="auth_flow &amp; &lt;more&gt;" order="1" />
   </groups>
   <assignments>
     <file path="/home/user/project/src/Foo.kt" group="a" />

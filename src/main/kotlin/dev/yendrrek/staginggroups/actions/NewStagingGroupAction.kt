@@ -10,7 +10,6 @@ import dev.yendrrek.staginggroups.StagingGroupsBundle
 import dev.yendrrek.staginggroups.domain.GroupsCommands
 import dev.yendrrek.staginggroups.domain.GroupsState
 import dev.yendrrek.staginggroups.state.StagingGroupsStore
-import dev.yendrrek.staginggroups.ui.StagingGroupPalette
 import java.util.UUID
 
 /** Asks for a name, then creates a staging group holding the selected files, if any. */
@@ -35,12 +34,11 @@ class NewStagingGroupAction : AnAction(), DumbAware {
             "",
             NameValidator { store.state },
         ) ?: return
-        val palette = StagingGroupPalette.colourIds(project)
         store.update { state ->
             // Another change may have taken the name while the dialog was open.
             if (GroupsCommands.nameProblem(state, name) != null) return@update state
             val id = UUID.randomUUID().toString()
-            val created = GroupsCommands.create(state, name, GroupsCommands.nextColourId(state, palette), id)
+            val created = GroupsCommands.create(state, name, id)
             GroupsCommands.assign(created, targets, id)
         }
     }

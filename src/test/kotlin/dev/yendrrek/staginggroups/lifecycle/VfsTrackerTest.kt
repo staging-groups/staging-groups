@@ -29,7 +29,7 @@ class VfsTrackerTest : BasePlatformTestCase() {
         base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root)!!.path
         // The light project is shared by every test class: start from two groups.
         store.update {
-            val groups = GroupsCommands.create(GroupsCommands.create(GroupsState(), "Feature A", "", "a"), "Refactor", "", "r")
+            val groups = GroupsCommands.create(GroupsCommands.create(GroupsState(), "Feature A", "a"), "Refactor", "r")
             GroupsCommands.assign(GroupsCommands.assign(groups, paths("src/Foo.kt"), "a"), paths("src/util/Util.kt"), "r")
         }
     }

@@ -9,33 +9,33 @@ import org.junit.jupiter.api.assertThrows
 class GroupsCommandsTest {
 
     private val twoGroups = GroupsState()
-        .let { GroupsCommands.create(it, "Feature A", "Blue", id = "a") }
-        .let { GroupsCommands.create(it, "Refactor", "Green", id = "r") }
+        .let { GroupsCommands.create(it, "Feature A", id = "a") }
+        .let { GroupsCommands.create(it, "Refactor", id = "r") }
 
     @Test
     fun `create appends a group with a trimmed name and the next order`() {
-        val state = GroupsCommands.create(twoGroups, "  Docs  ", "Rose", id = "d")
+        val state = GroupsCommands.create(twoGroups, "  Docs  ", id = "d")
 
-        assertEquals(StagingGroup("d", "Docs", "Rose", 2), state.groups.last())
+        assertEquals(StagingGroup("d", "Docs", 2), state.groups.last())
         assertEquals(listOf("a", "r", "d"), state.groups.map { it.id })
     }
 
     @Test
     fun `create generates distinct IDs`() {
-        val state = GroupsCommands.create(GroupsCommands.create(GroupsState(), "One", ""), "Two", "")
+        val state = GroupsCommands.create(GroupsCommands.create(GroupsState(), "One"), "Two")
 
         assertEquals(2, state.groups.map { it.id }.distinct().size)
     }
 
     @Test
     fun `create rejects blank and duplicate names`() {
-        assertThrows<IllegalArgumentException> { GroupsCommands.create(twoGroups, "   ", "Blue") }
-        assertThrows<IllegalArgumentException> { GroupsCommands.create(twoGroups, "feature a", "Blue") }
+        assertThrows<IllegalArgumentException> { GroupsCommands.create(twoGroups, "   ") }
+        assertThrows<IllegalArgumentException> { GroupsCommands.create(twoGroups, "feature a") }
     }
 
     @Test
     fun `create rejects an ID already in use`() {
-        assertThrows<IllegalArgumentException> { GroupsCommands.create(twoGroups, "Other", "Blue", id = "a") }
+        assertThrows<IllegalArgumentException> { GroupsCommands.create(twoGroups, "Other", id = "a") }
     }
 
     @Test
@@ -57,16 +57,9 @@ class GroupsCommandsTest {
     fun `rename changes only the name and allows a case change of its own name`() {
         val state = GroupsCommands.rename(twoGroups, "r", "REFACTOR")
 
-        assertEquals(StagingGroup("r", "REFACTOR", "Green", 1), state.groups[1])
+        assertEquals(StagingGroup("r", "REFACTOR", 1), state.groups[1])
         assertThrows<IllegalArgumentException> { GroupsCommands.rename(twoGroups, "r", "Feature A") }
         assertThrows<IllegalArgumentException> { GroupsCommands.rename(twoGroups, "missing", "X") }
-    }
-
-    @Test
-    fun `recolour changes only the colour`() {
-        val state = GroupsCommands.recolour(twoGroups, "a", "Violet")
-
-        assertEquals(StagingGroup("a", "Feature A", "Violet", 0), state.groups[0])
     }
 
     @Test
@@ -79,13 +72,13 @@ class GroupsCommandsTest {
 
         val state = GroupsCommands.delete(assigned, "a")
 
-        assertEquals(listOf(StagingGroup("r", "Refactor", "Green", 0)), state.groups)
+        assertEquals(listOf(StagingGroup("r", "Refactor", 0)), state.groups)
         assertEquals(mapOf("/p/Util.kt" to "r"), state.assignments)
     }
 
     @Test
     fun `reorder moves a group and renumbers, clamping the index`() {
-        val three = GroupsCommands.create(twoGroups, "Docs", "Rose", id = "d")
+        val three = GroupsCommands.create(twoGroups, "Docs", id = "d")
 
         assertEquals(listOf("d", "a", "r"), GroupsCommands.reorder(three, "d", 0).groups.map { it.id })
         assertEquals(listOf("r", "d", "a"), GroupsCommands.reorder(three, "a", 99).groups.map { it.id })
@@ -93,16 +86,16 @@ class GroupsCommandsTest {
     }
 
     @Test
-    fun `replaceGroups renames, recolours, reorders, adds and deletes in one edit`() {
+    fun `replaceGroups renames, reorders, adds and deletes in one edit`() {
         val assigned = GroupsCommands.assign(twoGroups, listOf("/p/Foo.kt"), "a")
             .let { GroupsCommands.assign(it, listOf("/p/Util.kt"), "r") }
 
         val state = GroupsCommands.replaceGroups(
             assigned,
-            listOf(StagingGroup("n", " Docs ", "Rose", 7), StagingGroup("a", "Feature B", "Violet", 0)),
+            listOf(StagingGroup("n", " Docs ", 7), StagingGroup("a", "Feature B", 0)),
         )
 
-        assertEquals(listOf(StagingGroup("n", "Docs", "Rose", 0), StagingGroup("a", "Feature B", "Violet", 1)), state.groups)
+        assertEquals(listOf(StagingGroup("n", "Docs", 0), StagingGroup("a", "Feature B", 1)), state.groups)
         assertEquals(mapOf("/p/Foo.kt" to "a"), state.assignments)
     }
 
@@ -110,7 +103,7 @@ class GroupsCommandsTest {
     fun `replaceGroups lets two groups swap names`() {
         val state = GroupsCommands.replaceGroups(
             twoGroups,
-            listOf(StagingGroup("a", "Refactor", "Blue", 0), StagingGroup("r", "Feature A", "Green", 1)),
+            listOf(StagingGroup("a", "Refactor", 0), StagingGroup("r", "Feature A", 1)),
         )
 
         assertEquals(listOf("Refactor", "Feature A"), state.groups.map { it.name })
@@ -118,12 +111,12 @@ class GroupsCommandsTest {
 
     @Test
     fun `replaceGroups rejects blank and duplicate names and a repeated ID`() {
-        assertThrows<IllegalArgumentException> { GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", " ", "", 0))) }
+        assertThrows<IllegalArgumentException> { GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", " ", 0))) }
         assertThrows<IllegalArgumentException> {
-            GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", "Docs", "", 0), StagingGroup("r", "docs ", "", 1)))
+            GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", "Docs", 0), StagingGroup("r", "docs ", 1)))
         }
         assertThrows<IllegalArgumentException> {
-            GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", "One", "", 0), StagingGroup("a", "Two", "", 1)))
+            GroupsCommands.replaceGroups(twoGroups, listOf(StagingGroup("a", "One", 0), StagingGroup("a", "Two", 1)))
         }
     }
 
@@ -227,16 +220,6 @@ class GroupsCommandsTest {
         assertEquals(mapOf("/p/B.kt" to "a"), retained.assignments)
         assertEquals(twoGroups.groups, retained.groups)
         assertSame(assigned, GroupsCommands.retain(assigned, setOf("/p/A.kt", "/p/B.kt", "/p/C.kt")))
-    }
-
-    @Test
-    fun `nextColourId takes the first unused palette colour, then cycles`() {
-        val palette = listOf("Blue", "Green", "Rose")
-
-        assertEquals("Rose", GroupsCommands.nextColourId(twoGroups, palette))
-        val full = GroupsCommands.create(twoGroups, "Docs", "Rose", id = "d")
-        assertEquals("Blue", GroupsCommands.nextColourId(full, palette))
-        assertEquals("", GroupsCommands.nextColourId(full, emptyList()))
     }
 
     @Test

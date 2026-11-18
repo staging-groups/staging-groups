@@ -18,8 +18,8 @@
         <b>Remove Unchanged Files from Staging Groups</b> to clear out files with nothing left to
         commit, or let each commit take its committed files out of their groups.
         <br/><br/>
-        Rename, recolour, reorder and delete staging groups in <b>Settings | Version Control | Staging
-        Groups</b>, where colours and clean-up after a commit can also be switched on.
+        Rename, reorder and delete staging groups in <b>Settings | Version Control | Staging
+        Groups</b>, where clean-up after a commit can also be switched on.
     ]]></description>
 
     <resource-bundle>messages.StagingGroupsBundle</resource-bundle>
@@ -40,11 +40,6 @@
         <changesGroupingPolicy key="staging-groups" id="staging-groups" weight="50"
                                implementationClass="dev.yendrrek.staginggroups.vcs.StagingGroupsGroupingPolicy$Factory"/>
 
-        <!-- "first": a group's colour beats the IDE's File Colors scopes. "after prismtabs": PrismTabs
-             colours tabs ahead of Staging Groups; the platform skips the constraint without it. -->
-        <editorTabColorProvider id="staginggroups" order="first, after prismtabs"
-                                implementation="dev.yendrrek.staginggroups.ui.StagingGroupColorProvider"/>
-
         <checkinHandlerFactory implementation="dev.yendrrek.staginggroups.vcs.RemoveCommittedFilesCheckinHandlerFactory"/>
 
         <projectConfigurable parentId="project.propVCSSupport.Mappings" id="dev.yendrrek.staginggroups.settings" key="configurable.display.name"
@@ -58,8 +53,6 @@
 
     <projectListeners>
         <listener class="dev.yendrrek.staginggroups.vcs.ChangesViewRefresher"
-                  topic="dev.yendrrek.staginggroups.state.StagingGroupsListener"/>
-        <listener class="dev.yendrrek.staginggroups.ui.FileColourRefresher"
                   topic="dev.yendrrek.staginggroups.state.StagingGroupsListener"/>
         <listener class="dev.yendrrek.staginggroups.lifecycle.VfsTracker"
                   topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>

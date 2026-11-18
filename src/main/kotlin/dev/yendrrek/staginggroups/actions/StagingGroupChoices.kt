@@ -8,9 +8,7 @@ import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.project.DumbAware
 import dev.yendrrek.staginggroups.StagingGroupsBundle
 import dev.yendrrek.staginggroups.domain.GroupsCommands
-import dev.yendrrek.staginggroups.settings.StagingGroupsSettings
 import dev.yendrrek.staginggroups.state.StagingGroupsStore
-import dev.yendrrek.staginggroups.ui.StagingGroupIcons
 
 /**
  * One [AssignToStagingGroupAction] per staging group, in display order, or [NoStagingGroupsAction]
@@ -51,17 +49,15 @@ class AssignToStagingGroupAction(private val groupId: String) : AnAction(), Togg
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
-        val project = e.project
-        val snapshot = project?.let { StagingGroupsStore.getInstance(it).snapshot() }
+        val snapshot = e.project?.let { StagingGroupsStore.getInstance(it).snapshot() }
         val group = snapshot?.group(groupId)
-        if (project == null || snapshot == null || group == null) {
+        if (snapshot == null || group == null) {
             e.presentation.isEnabledAndVisible = false
             return
         }
         val targets = e.stagingGroupTargets()
         // Group names are free text: without `false`, an underscore would be taken as a mnemonic.
         e.presentation.setText(group.name, false)
-        e.presentation.icon = StagingGroupIcons.colourDot(project, group, StagingGroupsSettings.getInstance(project).snapshot().useColours)
         e.presentation.isEnabledAndVisible = targets.isNotEmpty()
         Toggleable.setSelected(e.presentation, targets.isNotEmpty() && targets.all { snapshot.groupFor(it)?.id == groupId })
     }

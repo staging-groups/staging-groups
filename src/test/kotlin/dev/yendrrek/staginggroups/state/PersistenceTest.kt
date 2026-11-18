@@ -25,8 +25,8 @@ class PersistenceTest : BasePlatformTestCase() {
 
     private val sample = GroupsState(
         groups = listOf(
-            StagingGroup(id = "a", name = "Feature A", colourId = "Blue", order = 0),
-            StagingGroup(id = "r", name = "auth_flow & <more>", colourId = "", order = 1),
+            StagingGroup(id = "a", name = "Feature A", order = 0),
+            StagingGroup(id = "r", name = "auth_flow & <more>", order = 1),
         ),
         assignments = linkedMapOf(
             "/home/user/project/src/Foo.kt" to "a",
@@ -58,10 +58,10 @@ class PersistenceTest : BasePlatformTestCase() {
         assertEquals(sample, XmlSerializer.deserialize(element, GroupsState::class.java))
     }
 
-    fun `test settings survive serialisation and default to colours off`() {
-        assertEquals(SettingsState(useColours = false, colourTabs = true, colourTrees = true, autoCleanup = false), SettingsState())
+    fun `test settings survive serialisation and default to clean-up off`() {
+        assertEquals(SettingsState(autoCleanup = false), SettingsState())
 
-        val changed = SettingsState(useColours = true, colourTabs = false, colourTrees = true, autoCleanup = true)
+        val changed = SettingsState(autoCleanup = true)
         val element = XmlSerializer.serialize(changed)
 
         assertEquals(changed, XmlSerializer.deserialize(element, SettingsState::class.java))
@@ -70,10 +70,7 @@ class PersistenceTest : BasePlatformTestCase() {
     fun `test saved settings file reads back`() {
         val element = JDOMUtil.load(javaClass.getResourceAsStream("/saved-state/StagingGroupsSettings.xml")!!)
 
-        assertEquals(
-            SettingsState(useColours = true, colourTabs = false, colourTrees = true, autoCleanup = true),
-            XmlSerializer.deserialize(element, SettingsState::class.java),
-        )
+        assertEquals(SettingsState(autoCleanup = true), XmlSerializer.deserialize(element, SettingsState::class.java))
     }
 
     fun `test update announces a change once and an unchanged update not at all`() {
@@ -88,34 +85,11 @@ class PersistenceTest : BasePlatformTestCase() {
             },
         )
 
-        store.update { GroupsCommands.create(it, "Feature A", "Blue", id = "a") }
+        store.update { GroupsCommands.create(it, "Feature A", id = "a") }
         store.update { it }
 
         assertEquals(1, announced)
         assertEquals("Feature A", store.snapshot().group("a")?.name)
         assertSame(store.snapshot(), store.snapshot())
-    }
-
-    fun `test settings update announces a settings change`() {
-        val settings = StagingGroupsSettings.getInstance(project)
-        var announced = 0
-        project.messageBus.connect(testRootDisposable).subscribe(
-            StagingGroupsListener.TOPIC,
-            object : StagingGroupsListener {
-                override fun settingsChanged() {
-                    announced++
-                }
-            },
-        )
-
-        assertFalse(settings.colourEditorTabs)
-        settings.update { it.copy(useColours = true) }
-        settings.update { it.copy(useColours = true) }
-
-        assertEquals(1, announced)
-        assertTrue(settings.colourEditorTabs)
-        assertTrue(settings.colourFileTrees)
-        settings.update { it.copy(colourTabs = false) }
-        assertFalse(settings.colourEditorTabs)
     }
 }

@@ -28,21 +28,11 @@ object GroupsCommands {
         return state.groups.firstOrNull { it.id != exceptId && it.name.equals(trimmed, ignoreCase = true) }
     }
 
-    /**
-     * The colour for a new group: the first of [palette] no group uses yet, or, once all are taken,
-     * the palette again from the start. Empty when [palette] is.
-     */
-    fun nextColourId(state: GroupsState, palette: List<String>): String {
-        if (palette.isEmpty()) return ""
-        val used = state.groups.mapTo(HashSet()) { it.colourId }
-        return palette.firstOrNull { it !in used } ?: palette[state.groups.size % palette.size]
-    }
-
     /** Adds a group named [name] after all others. */
-    fun create(state: GroupsState, name: String, colourId: String, id: String = UUID.randomUUID().toString()): GroupsState {
+    fun create(state: GroupsState, name: String, id: String = UUID.randomUUID().toString()): GroupsState {
         requireValidName(state, name, exceptId = null)
         require(state.groups.none { it.id == id }) { "Staging group ID $id is already used" }
-        val group = StagingGroup(id = id, name = name.trim(), colourId = colourId, order = state.groups.size)
+        val group = StagingGroup(id = id, name = name.trim(), order = state.groups.size)
         return state.copy(groups = state.groups + group)
     }
 
@@ -50,9 +40,6 @@ object GroupsCommands {
         requireValidName(state, name, exceptId = id)
         return state.updateGroup(id) { it.copy(name = name.trim()) }
     }
-
-    fun recolour(state: GroupsState, id: String, colourId: String): GroupsState =
-        state.updateGroup(id) { it.copy(colourId = colourId) }
 
     /** Removes the group and unassigns its files. */
     fun delete(state: GroupsState, id: String): GroupsState {

@@ -9,8 +9,7 @@ import com.intellij.util.xmlb.annotations.XMap
 // one it skips every final field that is not a collection or a map.
 
 /**
- * A named staging group. [colourId] is a File Colors ID, kept even while colours are switched off.
- * [order] is the group's position among all groups, from 0.
+ * A named staging group. [order] is the group's position among all groups, from 0.
  *
  * Persisted: never rename this class or its properties, or change their XML names.
  */
@@ -18,7 +17,6 @@ import com.intellij.util.xmlb.annotations.XMap
 data class StagingGroup(
     @field:Attribute("id") @JvmField val id: String = "",
     @field:Attribute("name") @JvmField val name: String = "",
-    @field:Attribute("colourId") @JvmField val colourId: String = "",
     @field:Attribute("order") @JvmField val order: Int = 0,
 )
 

@@ -16,8 +16,8 @@ import java.time.Duration
 
 /**
  * Disabling the plugin without a restart, as **Settings | Plugins** does: its class loader must go,
- * and no file may keep its colour nor the staging tree its group nodes. Enabling it again must bring
- * back the groups, the grouping and the colours.
+ * and the staging tree its group nodes. Enabling it again must bring back the groups and the
+ * grouping.
  *
  * The plugin is loaded back in a `finally`: the rest of the suite shares this sandbox.
  */
@@ -27,12 +27,10 @@ class PluginUnloadUiTest {
     @BeforeEach
     fun setUp(robot: RemoteRobot) {
         robot.resetFixtureRepo()
-        robot.setStagingGroups(linkedMapOf("Feature A" to listOf("src/Foo.kt")), colours = mapOf("Feature A" to "Blue"))
-        robot.setColourSettings(useColours = true, colourTabs = true, colourTrees = true)
+        robot.setStagingGroups(linkedMapOf("Feature A" to listOf("src/Foo.kt")))
         robot.activateCommitToolWindow()
         robot.setStagingTreeGrouping("directory", false)
         robot.setStagingTreeGrouping("staging-groups", true)
-        robot.openInEditor("src/Bar.kt")
         robot.openInEditor("src/Foo.kt")
     }
 
@@ -43,7 +41,6 @@ class PluginUnloadUiTest {
         robot.setStagingTreeGrouping("staging-groups", false)
         robot.setStagingTreeGrouping("directory", true)
         robot.setStagingGroups(emptyMap())
-        robot.setColourSettings(useColours = false, colourTabs = true, colourTrees = true)
         robot.resetFixtureRepo()
     }
 
@@ -53,8 +50,7 @@ class PluginUnloadUiTest {
     }
 
     @Test
-    fun `disabling releases the class loader and every colour, and enabling brings them back`(robot: RemoteRobot) {
-        val blue = robot.fileColour("Blue")
+    fun `disabling releases the class loader and the grouping, and enabling brings them back`(robot: RemoteRobot) {
         // Every UI of the plugin first, each a chance to leave a reference to its classes behind:
         // the New Staging Group dialog with text selected in it (Linux puts a selection on the
         // primary clipboard), and the settings page.
@@ -76,7 +72,6 @@ class PluginUnloadUiTest {
         robot.chooseFromStagingGroupMenu("Manage Staging Groups…")
         robot.find(CommonContainerFixture::class.java, byXpath("//div[@class='MyDialog' and @title='Settings']"), Duration.ofSeconds(10))
             .button("Cancel").click()
-        robot.waitForTabColour("Foo.kt", blue)
         // A tree keeps the row last pressed in it until the next release there, which a right-click
         // never sends it: the context menu takes the release. Here that row is in a staging group;
         // a user's next click in the tree lets it go.
@@ -89,8 +84,6 @@ class PluginUnloadUiTest {
             val outcome = robot.unloadStagingGroups()
             unloaded = outcome.startsWith("unloaded")
             assertEquals("unloaded:collected", outcome, "':retained' is the \"not unload-safe\" dialog and the restart a user has to do")
-            robot.waitForTabColour("Foo.kt", "none")
-            robot.waitForTabColour("Bar.kt", "none")
             robot.waitForStagingRows(
                 "Staged 3 files", "Bar.kt src", "Baz.kt src", "Foo.kt src",
                 "Unstaged 5 files", "Baz.kt src", "Fresh.kt src", "Qux.kt src", "README.md ui-test-fixture", "Util.kt src/util",
@@ -98,12 +91,11 @@ class PluginUnloadUiTest {
 
             unloaded = false
             assertEquals(true, robot.reloadStagingGroups(), "Staging Groups could not be loaded back")
-            robot.waitForTabColour("Foo.kt", blue)
             robot.waitForStagingRows(
                 "Staged 3 files", "Feature A 1 file", "Foo.kt src", "Docs 1 file", "Bar.kt src", "Baz.kt src",
                 "Unstaged 5 files", "Baz.kt src", "Fresh.kt src", "Qux.kt src", "README.md ui-test-fixture", "Util.kt src/util",
             )
-            assertEquals(listOf("Feature A:Blue", "Docs:Green"), robot.stagingGroupList())
+            assertEquals(listOf("Feature A", "Docs"), robot.stagingGroupList())
             assertEquals(mapOf("src/Bar.kt" to "Docs", "src/Foo.kt" to "Feature A"), robot.stagingGroupAssignments())
         } finally {
             if (unloaded) robot.reloadStagingGroups()

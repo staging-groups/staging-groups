@@ -78,7 +78,7 @@ visibility; check its annotations with `javap -v`.
 - Never omit a defaulted argument when calling a `com.intellij` Kotlin function or constructor. The
   synthetic `$default` call throws `NoSuchMethodError` on newer IDEs. `PlatformDefaultArgumentCallsTest`
   enforces it.
-- The grouping policy and the colour provider run off the EDT and very often: read immutable
+- The grouping policy runs off the EDT and very often: read immutable
   snapshots only, with no I/O and no locks.
 - Keep Git-specific code in the optional `staginggroups-git.xml` module, so the plugin loads with
   Git disabled. The rest of the plugin reaches the staging area only through the `vcsChangesView`
@@ -86,7 +86,7 @@ visibility; check its annotations with `javap -v`.
 - Register listeners in `plugin.xml`, never as `<component>`, so the plugin unloads without a restart.
 - Whatever the plugin leaves in the platform's UI must be taken back in
   `lifecycle/DynamicUnloadListener` before an unload: the platform drops extensions without
-  repainting or rebuilding anything, and a tree node, colour or clipboard entry of the plugin's keeps
+  rebuilding anything, and a tree node or clipboard entry of the plugin's keeps
   its class loader alive. `PluginUnloadUiTest` checks the class loader is collected.
 - One retained node is a known, accepted limitation: a platform `Tree` keeps its last right-clicked
   row in a private field until the next mouse release in that tree, so disabling the plugin straight
@@ -95,12 +95,10 @@ visibility; check its annotations with `javap -v`.
 
 ## Coexistence with PrismTabs
 
-PrismTabs (`~/dev/prismtabs`, ID `io.prismtabs`) also colours editor tabs through
-`editorTabColorProvider`.
+PrismTabs (`~/dev/prismtabs`, ID `io.prismtabs`) colours editor tabs.
 
-- Colours are off by default. With colours off, group nodes show `AllIcons.Nodes.Folder` and a bold
-  name, and the plugin colours nothing.
-- The colour provider is registered with `order="first, after prismtabs"`, so PrismTabs wins on tabs.
+- Staging Groups colours nothing: no `editorTabColorProvider`, no colour per group. Group nodes show
+  `AllIcons.Nodes.Folder` and a bold name.
 - Never take `anchor="first"` in `EditorTabPopupMenu`; that slot is PrismTabs'.
 - UI text says "Staging Group", never a bare "Group".
 - No `Alt+1…9` shortcuts; they are the IDE's tool-window shortcuts.

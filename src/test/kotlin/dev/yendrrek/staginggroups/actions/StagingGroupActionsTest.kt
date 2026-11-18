@@ -46,8 +46,8 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         ExtensionTestUtil.maskExtensions(VcsChangesView.EP_NAME, listOf(changesView), testRootDisposable)
         // The light project is shared by every test class: start from two empty groups.
         store.update {
-            val withA = GroupsCommands.create(GroupsState(), "Feature A", "", "a")
-            GroupsCommands.create(withA, "auth_flow", "", "r")
+            val withA = GroupsCommands.create(GroupsState(), "Feature A", "a")
+            GroupsCommands.create(withA, "auth_flow", "r")
         }
     }
 
