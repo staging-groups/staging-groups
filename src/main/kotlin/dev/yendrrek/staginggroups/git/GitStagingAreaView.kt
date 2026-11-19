@@ -3,6 +3,7 @@ package dev.yendrrek.staginggroups.git
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vcs.changes.ui.ChangesBrowserNode
 import com.intellij.vcs.commit.CommitModeManager
 import dev.yendrrek.staginggroups.domain.SelectedPath
 import dev.yendrrek.staginggroups.vcs.ChangedPaths
@@ -11,6 +12,7 @@ import dev.yendrrek.staginggroups.vcs.VcsChangesView
 import git4idea.index.GitStageTracker
 import git4idea.index.GitStageTrackerListener
 import git4idea.index.ui.GitStageDataKeys
+import git4idea.index.ui.NodeKind
 
 /** The Git staging area: staged, unstaged, untracked and conflicted files. */
 class GitStagingAreaView : VcsChangesView {
@@ -37,6 +39,8 @@ class GitStagingAreaView : VcsChangesView {
 
     override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? =
         dataContext.getData(GitStageDataKeys.GIT_FILE_STATUS_NODES)?.map { SelectedPath(it.filePath.path, it.filePath.isDirectory) }
+
+    override fun listsEveryGroup(section: ChangesBrowserNode<*>): Boolean = section.userObject == NodeKind.UNSTAGED
 
     companion object {
         /**

@@ -56,7 +56,7 @@ class PluginUnloadUiTest {
         // primary clipboard), and the settings page.
         robot.waitForStagingRows(
             "Staged 3 files", "Feature A 1 file", "Foo.kt src", "Bar.kt src", "Baz.kt src",
-            "Unstaged 5 files", "Baz.kt src", "Fresh.kt src", "Qux.kt src", "README.md ui-test-fixture", "Util.kt src/util",
+            "Unstaged 5 files", "Feature A", "Baz.kt src", "Fresh.kt src", "Qux.kt src", "README.md ui-test-fixture", "Util.kt src/util",
         )
         val tree = robot.stagingTree()
         tree.clickRow(tree.rowIndex("Bar.kt src"))
@@ -93,7 +93,7 @@ class PluginUnloadUiTest {
             assertEquals(true, robot.reloadStagingGroups(), "Staging Groups could not be loaded back")
             robot.waitForStagingRows(
                 "Staged 3 files", "Feature A 1 file", "Foo.kt src", "Docs 1 file", "Bar.kt src", "Baz.kt src",
-                "Unstaged 5 files", "Baz.kt src", "Fresh.kt src", "Qux.kt src", "README.md ui-test-fixture", "Util.kt src/util",
+                "Unstaged 5 files", "Feature A", "Docs", "Baz.kt src", "Fresh.kt src", "Qux.kt src", "README.md ui-test-fixture", "Util.kt src/util",
             )
             assertEquals(listOf("Feature A", "Docs"), robot.stagingGroupList())
             assertEquals(mapOf("src/Bar.kt" to "Docs", "src/Foo.kt" to "Feature A"), robot.stagingGroupAssignments())

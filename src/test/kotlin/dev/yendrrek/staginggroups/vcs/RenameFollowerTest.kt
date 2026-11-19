@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vcs.changes.ChangeListListener
+import com.intellij.openapi.vcs.changes.ui.ChangesBrowserNode
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
@@ -105,5 +106,7 @@ class RenameFollowerTest : BasePlatformTestCase() {
         }
 
         override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? = null
+
+        override fun listsEveryGroup(section: ChangesBrowserNode<*>): Boolean = false
     }
 }

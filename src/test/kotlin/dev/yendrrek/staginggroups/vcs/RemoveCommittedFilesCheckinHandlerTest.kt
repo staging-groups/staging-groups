@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.changes.ChangeListManager
+import com.intellij.openapi.vcs.changes.ui.ChangesBrowserNode
 import com.intellij.openapi.vcs.checkin.CheckinHandler
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.PlatformTestUtil
@@ -106,5 +107,7 @@ class RemoveCommittedFilesCheckinHandlerTest : BasePlatformTestCase() {
         override fun addChangeListener(project: Project, listener: Runnable, parentDisposable: Disposable) = Unit
 
         override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? = null
+
+        override fun listsEveryGroup(section: ChangesBrowserNode<*>): Boolean = false
     }
 }

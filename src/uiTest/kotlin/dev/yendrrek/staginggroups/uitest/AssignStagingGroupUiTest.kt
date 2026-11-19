@@ -90,6 +90,24 @@ class AssignStagingGroupUiTest {
     }
 
     @Test
+    fun `a staging group whose last file moves to a new group stays under Unstaged`(robot: RemoteRobot) {
+        val tree = robot.stagingTree()
+        tree.rightClickRow(tree.rowIndex("Util.kt src/util"))
+        robot.chooseFromStagingGroupMenu("New Staging Group…")
+        robot.find(ComponentFixture::class.java, byXpath("//div[@class='MyDialog' and @title='New Staging Group']//div[@class='JTextField']"), Duration.ofSeconds(10))
+        Keyboard(robot).enterText("Docs")
+        Keyboard(robot).enter()
+
+        robot.waitForStagingRowsWithin(
+            REFRESH_LIMIT,
+            "Staged 3 files", "Feature A 2 files", "Baz.kt src", "Foo.kt src", "Bar.kt src",
+            "Unstaged 5 files", "Feature A 2 files", "Baz.kt src", "Qux.kt src", "Refactor", "Docs 1 file", "Util.kt src/util",
+            "Fresh.kt src", "README.md ui-test-fixture",
+        )
+        robot.saveReviewScreenshot("empty-staging-group")
+    }
+
+    @Test
     fun `with no staging groups the menu says so, disabled, above New Staging Group`(robot: RemoteRobot) {
         robot.setStagingGroups(emptyMap())
         val tree = robot.stagingTree()
@@ -111,7 +129,7 @@ class AssignStagingGroupUiTest {
         robot.waitForStagingRowsWithin(
             REFRESH_LIMIT,
             "Staged 3 files", "Feature A 2 files", "Baz.kt src", "Foo.kt src", "Bar.kt src",
-            "Unstaged 5 files", "Feature A 2 files", "Baz.kt src", "Qux.kt src",
+            "Unstaged 5 files", "Feature A 2 files", "Baz.kt src", "Qux.kt src", "Refactor",
             "Fresh.kt src", "README.md ui-test-fixture", "Util.kt src/util",
         )
     }
@@ -147,7 +165,7 @@ class AssignStagingGroupUiTest {
         robot.activateCommitToolWindow()
         robot.waitForStagingRows(
             "Staged 3 files", "Feature A 2 files", "Baz.kt src", "Foo.kt src", "Bar.kt src",
-            "Unstaged 5 files", "Feature A 3 files", "Baz.kt src", "Qux.kt src", "Util.kt src/util",
+            "Unstaged 5 files", "Feature A 3 files", "Baz.kt src", "Qux.kt src", "Util.kt src/util", "Refactor",
             "Fresh.kt src", "README.md ui-test-fixture",
         )
         val assignments = robot.stagingGroupAssignments()

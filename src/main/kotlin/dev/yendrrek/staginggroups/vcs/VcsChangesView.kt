@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vcs.changes.ui.ChangesBrowserNode
 import dev.yendrrek.staginggroups.domain.SelectedPath
 
 /**
@@ -27,6 +28,12 @@ interface VcsChangesView {
      * `null` when [dataContext] does not come from that tree.
      */
     fun selectedPaths(dataContext: DataContext): List<SelectedPath>?
+
+    /**
+     * Whether [section], a node of the view's tree that files are grouped under, is where new work
+     * lands, and so lists every staging group, empty ones too. Called off the EDT on every tree build.
+     */
+    fun listsEveryGroup(section: ChangesBrowserNode<*>): Boolean
 
     companion object {
         val EP_NAME: ExtensionPointName<VcsChangesView> = ExtensionPointName("dev.yendrrek.staginggroups.vcsChangesView")

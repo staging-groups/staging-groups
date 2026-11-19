@@ -12,6 +12,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.ui.TestInputDialog
+import com.intellij.openapi.vcs.changes.ui.ChangesBrowserNode
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.PlatformTestUtil
@@ -246,6 +247,8 @@ class StagingGroupActionsTest : BasePlatformTestCase() {
         override fun addChangeListener(project: Project, listener: Runnable, parentDisposable: Disposable) = Unit
 
         override fun selectedPaths(dataContext: DataContext): List<SelectedPath>? = selection
+
+        override fun listsEveryGroup(section: ChangesBrowserNode<*>): Boolean = false
     }
 
     /** Answers the next input dialogs with [name], validated as the real dialog would; `null` cancels. */

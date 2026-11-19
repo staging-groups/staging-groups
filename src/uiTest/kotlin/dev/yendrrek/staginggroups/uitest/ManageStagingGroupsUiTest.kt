@@ -100,8 +100,8 @@ class ManageStagingGroupsUiTest {
 
         robot.waitForStagingRows(
             "Staged 3 files", "Feature A 2 files", "Baz.kt src", "Foo.kt src", "Bar.kt src",
-            "Unstaged 5 files", "Feature A 2 files", "Baz.kt src", "Qux.kt src", "Fresh.kt src", "README.md ui-test-fixture",
-            "Util.kt src/util",
+            "Unstaged 5 files", "Feature A 2 files", "Baz.kt src", "Qux.kt src", "Docs", "Fresh.kt src",
+            "README.md ui-test-fixture", "Util.kt src/util",
         )
         assertEquals(listOf("Feature A", "Docs"), robot.stagingGroupList())
         assertEquals(setOf("src/Foo.kt", "src/Baz.kt", "src/Qux.kt"), robot.stagingGroupAssignments().keys)
